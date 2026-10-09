@@ -24,9 +24,9 @@ Moves a confirmed brainstorm to an approved spec and approved tickets. The `alpe
 
 ### 1. Put the brainstorm on disk
 
-Use the `[feature]` argument as the kebab-case `<feature>` slug; without one, propose a slug and confirm it with the user. Write the confirmed restate to `docs/.specs/<feature>/brainstorm.md`, unchanged. Paths: [artifacts](../../references/artifacts.md).
+Use the `[feature]` argument as the kebab-case `<feature>` slug; without one, propose a slug and confirm it with the user. Write the confirmed what and how blocks to `docs/.specs/<feature>/brainstorm.md`, unchanged. Paths: [artifacts](../../references/artifacts.md).
 
-Done when: `brainstorm.md` exists and matches the restate the user said yes to.
+Done when: `brainstorm.md` exists and matches the what and how blocks the user said yes to.
 
 ### 2. Get the spec written
 
@@ -82,7 +82,7 @@ Done when: the turn ends with no build started.
 
 ## Verification
 
-- [ ] `brainstorm.md` matches the confirmed restate, plus any follow-up decisions.
+- [ ] `brainstorm.md` matches the confirmed what and how blocks, plus any follow-up decisions.
 - [ ] Every question the architect returned was answered by the user.
 - [ ] `status: approved` and `tickets: approved` were each set after an explicit yes.
 - [ ] The turn ended with `/alper:build` offered and not started.

@@ -6,7 +6,7 @@ The files and branches every alper skill reads and writes. This file is their si
 
 ```
 docs/.specs/<feature>/
-  brainstorm.md            # the confirmed brainstorm restate
+  brainstorm.md            # the confirmed brainstorm: what and how blocks
   spec.md                  # the spec
   tickets/NN-<slug>.md     # one file per ticket
 GLOSSARY.md                # domain language, no implementation details
