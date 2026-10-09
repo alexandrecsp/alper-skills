@@ -1,0 +1,11 @@
+{
+  "name": "alper",
+  "displayName": "alper",
+  "version": "0.1.0",
+  "description": "Spec-driven development: brainstorm, spec, and parallel ticket builds with a merger and a two-axis review",
+  "author": {
+    "name": "Alexandre"
+  },
+  "license": "MIT",
+  "keywords": ["spec-driven-development", "tdd", "code-review", "agents"]
+}
