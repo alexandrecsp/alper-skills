@@ -2,6 +2,17 @@
 
 A Claude Code plugin for spec-driven development: `brainstorm → spec → build`, with parallel ticket builds, a merger, and one two-axis review per feature.
 
+## Install
+
+The repo is its own marketplace. In Claude Code:
+
+```
+/plugin marketplace add <path-to-this-repo>
+/plugin install alper@alper
+```
+
+After pulling or editing, `/plugin marketplace update alper` refreshes the installed copy. Once the repo is on GitHub, add it with `/plugin marketplace add <owner>/<repo>` instead.
+
 ## Commands
 
 | Command | What it does |

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "alper",
+  "description": "Alexandre's Claude Code plugins",
+  "owner": {
+    "name": "Alexandre"
+  },
+  "plugins": [
+    {
+      "name": "alper",
+      "source": "./",
+      "description": "Spec-driven development: brainstorm, spec, and parallel ticket builds with a merger and a two-axis review"
+    }
+  ]
+}
