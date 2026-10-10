@@ -12,6 +12,7 @@ docs/.specs/<feature>/
 GLOSSARY.md                # domain language, no implementation details
 docs/adr/NNNN-<slug>.md    # decisions, created lazily
 docs/CODING_STANDARDS.md   # only when the repo documents no standards elsewhere
+docs/drawings/<slug>.html  # a chart or view from /alper:draw when no path was given
 ```
 
 - `<feature>` is a kebab-case slug the user confirmed. `NN` is two digits, numbered in dependency order (blockers first).
@@ -81,3 +82,13 @@ The **frontier** is every ticket with `status: todo` whose every `blocked-by` id
 | Merge commit | the merged commit's title and trailer; always `--no-ff` |
 
 Titles and bodies follow the `commit` skill. Read a trailer with `git log --format='%(trailers:key=Ticket,valueonly)'`.
+
+## Draw marker
+
+A request for the drawer, left in a markdown file where the drawing belongs:
+
+```markdown
+<!-- draw: <what to draw>, from <its source: modules, a spec section, data> -->
+```
+
+The architect writes markers in `spec.md`; `/alper:spec` dispatches the drawer, which replaces each one with the drawing.

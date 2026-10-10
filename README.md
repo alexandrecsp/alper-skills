@@ -23,6 +23,7 @@ After pulling or editing, `/plugin marketplace update alper` refreshes the insta
 | `/alper:build [feature] [NN]` | Developers build every unblocked ticket in parallel, the merger integrates them one by one, then one review. With `NN`, builds that one ticket |
 | `/alper:commit` | Commits the staged change: an imperative title ("If applied, this commit will …") and at most three bullets |
 | `/alper:review [fixed-point]` | Standards and Spec review of the current branch against a branch, tag or commit (default: the spec's `base`) |
+| `/alper:draw [what] [target]` | The drawer draws a Mermaid diagram, chart or standalone HTML view, render-checks it, and writes it in place |
 
 ## Agents
 
@@ -32,6 +33,7 @@ After pulling or editing, `/plugin marketplace update alper` refreshes the insta
 | `developer` | sonnet | one ticket, test-first, in its own worktree | `implement-ticket`, `tdd`, `design-patterns`, `commit` |
 | `merger` | sonnet | one `--no-ff` merge at a time into `feat/<feature>` | `merge-ticket`, `commit` |
 | `code-reviewer` | opus | one review axis per run | `review-standards`, `review-spec`, `design-patterns` |
+| `drawer` | opus | one render-checked diagram, chart or view, written in place | `draw-visual` |
 
 Artifacts and branch names: [references/artifacts.md](references/artifacts.md). The design behind all of it: [docs/.specs/alper-framework/spec.md](docs/.specs/alper-framework/spec.md).
 

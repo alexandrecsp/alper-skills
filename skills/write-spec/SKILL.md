@@ -72,6 +72,8 @@ Write `docs/.specs/<feature>/spec.md` with the frontmatter from [artifacts](../.
 - [ ] <a checkable outcome>
 ```
 
+Where a picture carries a section better than prose (a flow across modules, a lifecycle, a data model), leave a draw marker there instead of drawing it. The format is in [artifacts](../../references/artifacts.md#draw-marker). `/alper:spec` has the drawer replace it.
+
 Use `GLOSSARY.md` terms throughout. A code snippet belongs in the spec only when it is the contract itself (a schema, a type shape, a state machine).
 
 Done when: every brainstorm decision appears in the spec, every pattern applied names the `design-patterns` problem that earns it, and every Success Criterion can be checked by running something or reading one artifact.

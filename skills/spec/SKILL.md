@@ -18,7 +18,7 @@ Moves a confirmed brainstorm to an approved spec and approved tickets. The `alpe
 - **A brainstorm was just confirmed in this conversation** → run the Process from step 1.
 - **`docs/.specs/<feature>/brainstorm.md` already exists** → run the Process from step 2.
 - **No brainstorm exists** → invoke `brainstorm` first, then run the Process.
-- **The spec is approved but tickets are not** → run the Process from step 4.
+- **The spec is approved but tickets are not** → run the Process from step 5.
 
 ## Process
 
@@ -37,7 +37,16 @@ Dispatch `alper:architect`: "Apply `write-spec` for `<feature>`, from `docs/.spe
 
 Done when: `spec.md` exists with `status: draft`.
 
-### 3. Approve the spec
+### 3. Draw the marked diagrams
+
+When `spec.md` holds draw markers ([artifacts](../../references/artifacts.md#draw-marker)), dispatch `alper:drawer`: "Apply `draw-visual` to every draw marker in `docs/.specs/<feature>/spec.md`."
+
+- **It returns questions** → put them to the user, then dispatch again with the answers.
+- **It returns a render failure** → show the user the error and the last source, and ask whether to retry with a change or keep the marker.
+
+Done when: no draw marker remains in `spec.md`, or the user chose to keep each one that does.
+
+### 4. Approve the spec
 
 Show the user the spec path and a summary: user stories count, the key implementation decisions, out of scope, success criteria. Ask for an explicit yes.
 
@@ -46,19 +55,19 @@ Show the user the spec path and a summary: user stories count, the key implement
 
 Done when: `status: approved` is set after an explicit yes.
 
-### 4. Get the tickets written
+### 5. Get the tickets written
 
 Dispatch `alper:architect`: "Apply `write-tickets` for `<feature>`." Set `tickets: draft` in the spec frontmatter when the files exist.
 
 Done when: the ticket files exist and the architect returned the breakdown table and frontier waves.
 
-### 5. Approve the tickets
+### 6. Approve the tickets
 
 Show the table and the waves. Ask: does the granularity fit, are the edges right, should any ticket merge or split? Changes go back to the architect. On an explicit yes, set `tickets: approved`.
 
 Done when: `tickets: approved` is set after an explicit yes.
 
-### 6. Hand back
+### 7. Hand back
 
 Tell the user the next step is `/alper:build`, then end the turn.
 
@@ -76,13 +85,15 @@ Done when: the turn ends with no build started.
 ## Red Flags
 
 - The architect dispatched before `brainstorm.md` exists (step 1)
-- A returned question answered without the user (step 2)
-- `status` or `tickets` set to `approved` without an explicit yes (steps 3 and 5)
-- A build started from this skill (step 6)
+- A returned question answered without the user (steps 2 and 3)
+- The spec shown for approval with a draw marker the user did not choose to keep (step 3)
+- `status` or `tickets` set to `approved` without an explicit yes (steps 4 and 6)
+- A build started from this skill (step 7)
 
 ## Verification
 
 - [ ] `brainstorm.md` matches the confirmed what and how blocks, plus any follow-up decisions.
-- [ ] Every question the architect returned was answered by the user.
+- [ ] Every question the architect or drawer returned was answered by the user.
+- [ ] No draw marker remains in `spec.md` unless the user chose to keep it.
 - [ ] `status: approved` and `tickets: approved` were each set after an explicit yes.
 - [ ] The turn ended with `/alper:build` offered and not started.
