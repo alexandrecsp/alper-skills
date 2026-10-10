@@ -6,6 +6,7 @@ tools: Read, Grep, Glob, Bash
 skills:
   - review-standards
   - review-spec
+  - design-patterns
 color: red
 ---
 

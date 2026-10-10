@@ -35,6 +35,7 @@ Each smell: what it is → the fix to suggest.
 - **Shotgun Surgery**: one logical change scattered across many files → gather what changes together.
 - **Divergent Change**: one module edited for unrelated reasons → split it so each part changes for one reason.
 - **Speculative Generality**: parameters, hooks or abstractions the spec does not need → inline them back.
+- **Unearned Pattern**: a design pattern (factory, strategy, observer, ports…) that no spec decision names and no `design-patterns` problem in the diff earns → plain code.
 - **Message Chains**: `a.b().c().d()` navigation the caller should not depend on → hide the walk behind one method.
 - **Middle Man**: a unit that mostly delegates → call the real target.
 - **Refused Bequest**: an implementer that ignores most of what it inherits → composition instead of inheritance.

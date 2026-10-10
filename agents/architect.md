@@ -6,6 +6,7 @@ tools: Read, Grep, Glob, Write, Edit
 skills:
   - write-spec
   - write-tickets
+  - design-patterns
   - domain-modeling
 color: purple
 ---

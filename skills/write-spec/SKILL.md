@@ -60,6 +60,7 @@ Write `docs/.specs/<feature>/spec.md` with the frontmatter from [artifacts](../.
 ## Implementation Decisions
 <modules built or changed, their interfaces, schema changes, API contracts, the patterns
  followed and why. Name modules and interfaces, not file paths.>
+<one line per design-patterns pattern applied: `<module>: <pattern> — <the problem it solves>`>
 
 ## Testing Decisions
 <the seams from step 3, what each catches, and prior-art tests in the codebase>
@@ -73,7 +74,7 @@ Write `docs/.specs/<feature>/spec.md` with the frontmatter from [artifacts](../.
 
 Use `GLOSSARY.md` terms throughout. A code snippet belongs in the spec only when it is the contract itself (a schema, a type shape, a state machine).
 
-Done when: every brainstorm decision appears in the spec, and every Success Criterion can be checked by running something or reading one artifact.
+Done when: every brainstorm decision appears in the spec, every pattern applied names the `design-patterns` problem that earns it, and every Success Criterion can be checked by running something or reading one artifact.
 
 ### 5. Settle the language
 

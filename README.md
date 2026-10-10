@@ -28,10 +28,10 @@ After pulling or editing, `/plugin marketplace update alper` refreshes the insta
 
 | Agent | Model | Job | Preloads |
 |---|---|---|---|
-| `architect` | opus | spec and tickets | `write-spec`, `write-tickets`, `domain-modeling` |
-| `developer` | sonnet | one ticket, test-first, in its own worktree | `implement-ticket`, `tdd`, `commit` |
+| `architect` | opus | spec and tickets | `write-spec`, `write-tickets`, `design-patterns`, `domain-modeling` |
+| `developer` | sonnet | one ticket, test-first, in its own worktree | `implement-ticket`, `tdd`, `design-patterns`, `commit` |
 | `merger` | sonnet | one `--no-ff` merge at a time into `feat/<feature>` | `merge-ticket`, `commit` |
-| `code-reviewer` | opus | one review axis per run | `review-standards`, `review-spec` |
+| `code-reviewer` | opus | one review axis per run | `review-standards`, `review-spec`, `design-patterns` |
 
 Artifacts and branch names: [references/artifacts.md](references/artifacts.md). The design behind all of it: [docs/.specs/alper-framework/spec.md](docs/.specs/alper-framework/spec.md).
 

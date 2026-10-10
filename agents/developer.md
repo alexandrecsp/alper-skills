@@ -7,6 +7,7 @@ disallowedTools: Agent
 skills:
   - implement-ticket
   - tdd
+  - design-patterns
   - commit
 color: green
 ---

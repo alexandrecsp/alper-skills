@@ -53,7 +53,8 @@ branch: ticket/<feature>/03-<slug>
 
 ## Notes
 
-<prefactoring, gotchas, the spec sections this ticket implements>
+<prefactoring, gotchas, the spec sections this ticket implements, and each
+ design-patterns file it applies, as `design-patterns/<file>.md`>
 ```
 
 ## Ticket status
