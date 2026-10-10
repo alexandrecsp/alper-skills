@@ -32,7 +32,7 @@ Done when: `brainstorm.md` exists and matches the what and how blocks the user s
 
 Dispatch `alper:architect`: "Apply `write-spec` for `<feature>`, from `docs/.specs/<feature>/brainstorm.md`."
 
-- **It returns questions** → put them to the user as one brainstorm round, append the answers to `brainstorm.md` under `## Follow-up decisions`, and dispatch again.
+- **It returns questions** → show them to the user verbatim under `**Spec · round <n>**`, keeping its numbering and `Next round` lines, then append the answers to `brainstorm.md` under `## Follow-up decisions`, and dispatch again.
 - **It returns the spec path** → continue.
 
 Done when: `spec.md` exists with `status: draft`.

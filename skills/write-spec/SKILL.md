@@ -26,18 +26,13 @@ Done when: every module a decision touches has been opened, and you can name the
 
 ### 2. Return the gaps
 
-List each decision the spec needs that the brainstorm does not settle: an interface shape, a data rule, a behaviour on failure, a choice between existing patterns. If the list is not empty, return it in this format and stop:
+List each decision the spec needs that the brainstorm does not settle: an interface shape, a data rule, a behaviour on failure, a choice between existing patterns. If the list is not empty, return its frontier as one round in the question format of [brainstorm step 2](../brainstorm/SKILL.md#2-ask-the-frontier), shaped so the caller can show it unchanged, and stop:
 
-```
-❓ **Q1 - <title>**: <the decision>
+- Group the questions under `**Domain**` (business rules and their edge cases), then `**Technical**`.
+- Number them Q1 to QN in the order they appear, with no gaps.
+- Below the round, list each held-back question as `Next round: <title> (waits on Q<n>)`.
 
-- **A** - <option>
-- **B** - <option>
-
-✅ **A** - <the one-line reason>
-```
-
-Done when: the list is empty, or it has been returned.
+Done when: the list is empty, or the round has been returned numbered Q1 to QN in reading order.
 
 ### 3. Choose the test seams
 
