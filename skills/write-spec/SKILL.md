@@ -57,6 +57,9 @@ Write `docs/.specs/<feature>/spec.md` with the frontmatter from [artifacts](../.
 1. As a <actor>, I want <capability>, so that <benefit>
    <one story per distinct behaviour, covering every branch the brainstorm settled>
 
+## Milestones
+<the milestones, in the format of the artifacts reference>
+
 ## Implementation Decisions
 <modules built or changed, their interfaces, schema changes, API contracts, the patterns
  followed and why. Name modules and interfaces, not file paths.>
@@ -72,11 +75,13 @@ Write `docs/.specs/<feature>/spec.md` with the frontmatter from [artifacts](../.
 - [ ] <a checkable outcome>
 ```
 
+Group the user stories into **milestones**, each delivering something the user can demo, in the [Milestones section](../../references/artifacts.md#milestones-section) format. Every spec gets the section, even when one milestone covers the whole feature. Order milestones so each one builds only on earlier ones; computed waves of the dependency graph are not milestones.
+
 Where a picture carries a section better than prose (a flow across modules, a lifecycle, a data model), leave a draw marker there instead of drawing it. The format is in [artifacts](../../references/artifacts.md#draw-marker). `/alper:spec` has the drawer replace it.
 
 Use `GLOSSARY.md` terms throughout. A code snippet belongs in the spec only when it is the contract itself (a schema, a type shape, a state machine).
 
-Done when: every brainstorm decision appears in the spec, every pattern applied names the `design-patterns` problem that earns it, and every Success Criterion can be checked by running something or reading one artifact.
+Done when: every brainstorm decision appears in the spec, every user story belongs to exactly one milestone, every pattern applied names the `design-patterns` problem that earns it, and every Success Criterion can be checked by running something or reading one artifact.
 
 ### 5. Settle the language
 
@@ -91,6 +96,8 @@ Done when: every domain term in the spec is in `GLOSSARY.md` with the same meani
 | "The obvious answer is clear, I'll just write it in" | Obvious to you is a guess to the user. Return it as a question with your recommendation. |
 | "File paths make the spec concrete" | Paths go stale before the build ends. Name the module and its interface. |
 | "A few user stories cover it" | Each distinct behaviour gets a story; the Spec reviewer checks the build against them. |
+| "One milestone covers it, so the section can go" | The user approves the grouping on every spec. Write the section with its one milestone. |
+| "Group the milestones by layer: models first, then the API" | A milestone is reviewed against the stories it delivers. Group by stories the user can demo. |
 | "Success criteria can be qualitative" | The Spec reviewer has to check them. Write each one as something you can run or read. |
 
 ## Red Flags
@@ -99,12 +106,14 @@ Done when: every domain term in the spec is in `GLOSSARY.md` with the same meani
 - A spec written while gap questions were still open (step 2)
 - File paths or code that is not a contract (step 4)
 - A user-visible behaviour with no seam in Testing Decisions (step 3)
+- A spec with no `## Milestones` section, or a user story in no milestone or in two (step 4)
 - A domain word used differently from `GLOSSARY.md` (step 5)
 
 ## Verification
 
 - [ ] Every decision in the spec traces to `brainstorm.md` or a returned-and-answered question.
 - [ ] Every section of the template is filled, and `Out of Scope` names at least one thing.
+- [ ] Every user story belongs to exactly one milestone, and each milestone delivers something the user can demo.
 - [ ] Every Success Criterion is checkable.
 - [ ] Every user-visible behaviour has a test seam.
 - [ ] Every domain term matches `GLOSSARY.md`.
