@@ -47,9 +47,9 @@ Done when: the ticket file is staged with `status: done`.
 
 ### 5. Prove it green
 
-Run typecheck and the full suite on the merged tree.
+Run the `Typecheck command` (unless `none`) and the `Full suite command` from the `## Agent workflow` block on the merged tree.
 
-- **Green** → commit with `commit`: the merged commit's title and trailer (a milestone merge: `M<NN> <slug>` and `Milestone: <feature>/<NN>`), and bullets only when step 3 resolved a conflict.
+- **Green** → load the `commit` skill and commit with it: the merged commit's title and trailer (a milestone merge: `M<NN> <slug>` and `Milestone: <feature>/<NN>`), and bullets only when step 3 resolved a conflict.
 - **Red, and the fix follows from the two tickets' criteria** → fix, rerun, then commit.
 - **Red otherwise** → `git merge --abort`, set the ticket's `status: blocked` with a `## Blocked` section stating the failing check and the conflicting criteria, commit that, and report. A milestone merge has no ticket to block: abort and report.
 
@@ -73,6 +73,7 @@ merged:  ticket NN <title> | review fix <cycle> | milestone NN <slug>
 result:  merged <sha> | blocked
 checks:  typecheck ✓, full suite ✓ (<n>)
 notes:   <conflicts resolved and how, or why it is blocked>
+gotchas: <each trap of this repo not yet in Gotchas that cost you a retry, one line each, or none>
 ```
 
 Done when: the report is returned.
@@ -90,12 +91,8 @@ Done when: the report is returned.
 ## Red Flags
 
 - The main checkout on a branch other than the integration branch at merge time (step 1)
-- A merge commit without `--no-ff`, or with a message off the format (steps 2 and 5)
 - A conflict resolved without reading both tickets (step 3)
-- A merge committed without a green full-suite run (step 5)
-- A ticket marked `done` outside its merge commit (step 4)
-- A milestone merge with no `Milestone:` trailer (step 5)
-- A leftover worktree or branch after a successful merge (step 6)
+- A merge committed while the suite is still running or red (step 5)
 
 ## Verification
 

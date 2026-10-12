@@ -92,8 +92,8 @@ Paths below are contracts the skills depend on (artifact locations, plugin layou
 | Agent | Model | Tools | Preloads |
 |---|---|---|---|
 | `architect` | `opus` | read, search, write docs | `write-spec`, `write-tickets`, `domain-modeling` |
-| `developer` | `sonnet` | full; `isolation: worktree` | `tdd`, `implement-ticket` |
-| `merger` | `sonnet` | full | `merge-ticket` |
+| `developer` | `sonnet` | files, shell, `Monitor`, `Skill`; `isolation: worktree` | `tdd`, `implement-ticket` |
+| `merger` | `sonnet` | files, shell, `Monitor`, `Skill` | `merge-ticket` |
 | `code-reviewer` | `opus` | read-only | `review-standards`, `review-spec` |
 
 - Agents are thin: role, tools, model and preloaded skills. They hold no process of their own.

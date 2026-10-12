@@ -352,6 +352,8 @@ function lintAgent(file, skillsByName) {
 
   if (data.isolation && data.isolation !== 'worktree') errors.push(`isolation '${data.isolation}' is not 'worktree'`);
 
+  if (!data.tools) warnings.push("no 'tools' allowlist; the agent inherits every tool of the session, MCP servers included, and pays their schemas on every turn");
+
   const skills = Array.isArray(data.skills) ? data.skills : data.skills ? [data.skills] : [];
   for (const name of skills) {
     const skill = skillsByName.get(name);

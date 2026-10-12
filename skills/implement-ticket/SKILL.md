@@ -27,15 +27,15 @@ You start in an isolated worktree based on the repository's default branch, not 
 git switch -c <branch> <integration-branch>
 ```
 
-`<branch>` is the ticket's `branch` field, or the review-fix branch for findings. Then run the install command from your prompt, unless it is `none`.
+`<branch>` is the ticket's `branch` field, or the review-fix branch for findings. Now read the `## Agent workflow` block from the agent file on disk (`CLAUDE.md`, else `AGENTS.md`): its commands and Gotchas are the integration branch's, newer than the copy loaded when you started. Run its `Install command`, unless it is `none`.
 
 Done when: `git rev-parse --abbrev-ref HEAD` prints your branch, `git merge-base --is-ancestor <integration-branch> HEAD` succeeds, and the install command exited 0.
 
 ### 2. Load the ticket
 
-Read the ticket (or findings), the spec sections its Notes name, `GLOSSARY.md`, the coding standards, and the stuck report when your prompt carries one. Find the project's typecheck, test and full-suite commands in its manifest or CI config.
+Read the ticket (or findings), `GLOSSARY.md`, the coding standards, and the stuck report when your prompt carries one. Read only the spec sections the ticket's Notes name: list the headings with `grep -n '^## ' <spec>`, then `Read` each section with an offset and limit. Read source files by the range you need, too; every line read stays in your context until you hand back. When the Notes name a `design-patterns/<file>.md`, load the `design-patterns` skill and read that file.
 
-Done when: you can list each acceptance criterion and the command that will prove it.
+Done when: you can list each acceptance criterion and the test that will prove it.
 
 ### 3. Build it test-first
 
@@ -45,13 +45,13 @@ Done when: every acceptance criterion has a passing test.
 
 ### 4. Prove it green
 
-Run typecheck, the ticket's tests, then the full suite. When one cannot be made green within the ticket's scope, stop here and hand back **stuck** (step 6) with that check and its output.
+Run the block's `Typecheck command` (unless `none`), its `Test command` with the ticket's tests, then its `Full suite command`. When one cannot be made green within the ticket's scope, stop here and hand back **stuck** (step 6) with that check and its output.
 
 Done when: all three pass, and you have their output; or you are handing back stuck.
 
 ### 5. Commit once
 
-Leave the ticket file untouched; `/alper:build` and the merger own it. Squash anything you committed along the way, then make one commit, its message written with `commit` and ending in the `Ticket:` (or `Review-fix:`) trailer:
+Leave the ticket file untouched; `/alper:build` and the merger own it. Squash anything you committed along the way, then load the `commit` skill and make one commit with it, ending in the `Ticket:` (or `Review-fix:`) trailer:
 
 ```bash
 git reset --soft <integration-branch>
@@ -69,6 +69,7 @@ branch:    <branch>
 worktree:  <output of git rev-parse --show-toplevel>
 commit:    <sha>
 checks:    typecheck ✓, ticket tests ✓ (<n>), full suite ✓ (<n>)
+gotchas:   <each trap of this repo not yet in Gotchas that cost you a retry, one line each, or none>
 ```
 
 ```
@@ -77,6 +78,7 @@ branch:    <branch>
 failing:   <typecheck | ticket tests | full suite>: <the command>
 output:    <the failing output, trimmed to what shows the failure>
 tried:     <each approach taken, one line each>
+gotchas:   <as above>
 ```
 
 ```
@@ -92,6 +94,7 @@ Done when: the report is returned.
 |---|---|
 | "The worktree is already on a branch, I'll just work here" | That branch is based on the default branch. Cut yours from the integration branch your prompt names. |
 | "I'll cut from `feat/<feature>`, that's the feature" | Tickets land on their milestone branch. Cut from the integration branch in your prompt. |
+| "I'll read the whole spec, it's safer" | The Notes name the sections your slice needs. Read those. |
 | "While I'm here I'll fix this nearby code" | Out-of-scope edits create merge conflicts with parallel tickets. Note it in your report instead. |
 | "I'll mark the ticket done myself" | The merger marks it done inside the merge commit. Leave the ticket file alone. |
 | "The ticket's tests pass, the full suite can wait for the merger" | A red suite blocks the merge. Run it before you hand back. |
@@ -100,13 +103,10 @@ Done when: the report is returned.
 
 ## Red Flags
 
-- A branch whose base is not the integration branch (step 1)
 - Tests run before the install command (step 1)
+- A test or check command found by searching the manifest instead of read from the block (steps 1 and 4)
 - Edits to files the ticket's slice has no reason to touch (step 3)
 - An open decision settled without asking (step 3)
-- A green hand-back with no full-suite result, or more than one commit (steps 4–5)
-- A commit handed back while a check is red, instead of stuck (step 4)
-- A changed ticket file in the diff (step 5)
 
 ## Verification
 
@@ -115,4 +115,4 @@ Done when: the report is returned.
 - [ ] Every acceptance criterion has a passing test.
 - [ ] Typecheck, the ticket's tests and the full suite pass, with output in the report; or the stuck report names the failing check with its output.
 - [ ] The ticket file is unchanged.
-- [ ] The hand-back report is complete, with every open decision listed.
+- [ ] The hand-back report is complete, with every open decision and every new gotcha listed.

@@ -3,12 +3,10 @@ name: developer
 description: Implements one alper ticket, or one set of review findings, test-first on its own branch in an isolated worktree. Dispatched by /alper:build.
 model: sonnet
 isolation: worktree
-disallowedTools: Agent
+tools: Read, Write, Edit, Grep, Glob, Bash, PowerShell, Monitor, TaskStop, ToolSearch, Skill
 skills:
   - implement-ticket
   - tdd
-  - design-patterns
-  - commit
 color: green
 ---
 

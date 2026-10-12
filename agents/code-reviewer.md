@@ -2,11 +2,10 @@
 name: code-reviewer
 description: Reviews a diff on one axis, Standards or Spec, and reports findings without editing code. Dispatched twice in parallel by the review skill, once per axis.
 model: opus
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, Skill
 skills:
   - review-standards
   - review-spec
-  - design-patterns
 color: red
 ---
 

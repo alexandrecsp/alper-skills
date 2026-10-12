@@ -21,21 +21,32 @@ docs/drawings/<slug>.html        # a chart or view from /alper:draw when no path
 
 ## Build settings
 
-Four bullets in the repo's `## Agent workflow` block, written by `/alper:setup-repository` and read by `/alper:build`:
+Seven bullets and a Gotchas list in the repo's `## Agent workflow` block, written by `/alper:setup-repository` and read by `/alper:build`, the developers and the merger:
 
 ```markdown
 - Parallel cap: 3
 - Parallel test suites: yes
-- Pause between milestones: off
+- Pause between milestones: on
 - Install command: npm ci
+- Typecheck command: npx tsc --noEmit
+- Test command: npx vitest run <tests>
+- Full suite command: npm test
+- Gotchas:
+  - <a trap of this repo every agent hits, one line>
 ```
 
 | Setting | Values | Default setup recommends |
 |---|---|---|
 | `Parallel cap` | a positive integer: the most tickets dispatched and not yet merged at once | 3, or 1 when `Parallel test suites` is `no` |
 | `Parallel test suites` | `yes` or `no`: can two copies of the full suite run at the same time | `yes` |
-| `Pause between milestones` | `on` or `off` | `off` |
+| `Pause between milestones` | `on` or `off`. `on` ends the run after each landed milestone, so the next one starts in a fresh session | `on` |
 | `Install command` | the command that installs dependencies in a fresh worktree, or `none` | derived from the lockfile or manifest |
+| `Typecheck command` | the command that typechecks or compiles the project, or `none` | derived from the manifest or CI config |
+| `Test command` | the command that runs only the tests named in place of `<tests>` | derived from the manifest or CI config |
+| `Full suite command` | the command that runs every test | derived from the manifest or CI config |
+
+- Each test command prints the pass and fail counts and the failures, and little else. A runner that prints its whole log gets a wrapper script that does, and the setting names the wrapper.
+- **Gotchas** are optional: at most 10 one-line traps of this repo (a tool that breaks in worktrees, a name clash, files never to commit). `/alper:build` adds one when a hand-back reports it, replacing the least useful entry when the list is full. Agents read them from the block; dispatch prompts never repeat them.
 
 ## Spec frontmatter
 

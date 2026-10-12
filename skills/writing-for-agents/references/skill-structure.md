@@ -135,7 +135,8 @@ An agent is a thin persona: role, tools, model and preloaded skills. Its know-ho
 | `name` | **Lint:** required, kebab-case. **Lint (warning):** equal to the file name. |
 | `description` | **Lint:** required. **Review:** says what the agent does and who dispatches it. |
 | `model` | **Lint:** required; `sonnet`, `opus`, `haiku`, `fable`, `inherit` or a `claude-*` id. Cost is a decision, so it is never left to the default. |
-| `skills` | **Lint:** every entry is a skill in this plugin, and none has `disable-model-invocation: true` (Claude Code cannot preload those). |
+| `tools` | **Lint (warning):** missing. Without an allowlist the agent inherits every tool of the session, MCP servers included, and pays their schemas on every turn. |
+| `skills` | **Review:** preload only what the agent applies on every run; a skill used at one step (a commit message) or on some branches is loaded with `Skill` when needed. **Lint:** every entry is a skill in this plugin, and none has `disable-model-invocation: true` (Claude Code cannot preload those). |
 | `isolation` | **Lint:** only `worktree`. |
 | other fields | **Lint (warning):** unknown fields, which Claude Code silently ignores, and `permissionMode`, `mcpServers`, `hooks`, `initialPrompt`, which it ignores for plugin agents. |
 

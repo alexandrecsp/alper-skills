@@ -34,6 +34,10 @@ _Avoid_: ready queue, backlog
 The most tickets a build has dispatched and not yet merged at one time, a setting the user chooses.
 _Avoid_: concurrency, worker count, max parallel
 
+**Gotcha**:
+A one-line trap of the target repo every agent must know, kept in its `## Agent workflow` block and added by the build when a hand-back reports one.
+_Avoid_: lesson, tip, note
+
 ### Problems during a build
 
 **Stuck**:

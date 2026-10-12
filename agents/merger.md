@@ -2,10 +2,9 @@
 name: merger
 description: Merges one finished alper ticket, review-fix or milestone branch into its integration branch with --no-ff, resolves conflicts against the tickets' acceptance criteria, and reruns the full suite. Dispatched by /alper:build, one at a time.
 model: sonnet
-disallowedTools: Agent
+tools: Read, Edit, Grep, Glob, Bash, PowerShell, Monitor, TaskStop, ToolSearch, Skill
 skills:
   - merge-ticket
-  - commit
 color: orange
 ---
 
