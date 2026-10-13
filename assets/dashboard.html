@@ -1,0 +1,1183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>alper dashboard</title>
+<!--
+  alper dashboard: a read-only view of docs/.specs. No server, no build step.
+  Open this file in a browser and pick the repository root (or docs/.specs).
+  Chrome and Edge read the folder live; other browsers load a snapshot.
+  Copied into each repo by /alper:setup-repository; edit the plugin's copy, not this one.
+-->
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'media',
+    theme: {
+      extend: {
+        colors: {
+          bg: 'rgb(var(--bg) / <alpha-value>)',
+          panel: 'rgb(var(--panel) / <alpha-value>)',
+          hover: 'rgb(var(--hover) / <alpha-value>)',
+          line: 'rgb(var(--line) / <alpha-value>)',
+          muted: 'rgb(var(--muted) / <alpha-value>)',
+          fg: 'rgb(var(--fg) / <alpha-value>)',
+          strong: 'rgb(var(--strong) / <alpha-value>)',
+        },
+        fontFamily: {
+          sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+          mono: ['ui-monospace', 'SFMono-Regular', 'Cascadia Mono', 'Consolas', 'monospace'],
+        },
+      },
+    },
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+<style>
+  :root { --bg: 255 255 255; --panel: 250 250 250; --hover: 244 244 245; --line: 228 228 231; --muted: 113 113 122; --fg: 39 39 42; --strong: 9 9 11; color-scheme: light; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: 9 9 11; --panel: 17 17 19; --hover: 28 28 31; --line: 39 39 42; --muted: 140 140 150; --fg: 212 212 216; --strong: 250 250 250; color-scheme: dark; }
+  }
+  *, *::before, *::after { border-radius: 0 !important; }
+  html, body { background: rgb(var(--bg)); color: rgb(var(--fg)); }
+  body { -webkit-font-smoothing: antialiased; }
+  ::selection { background: rgb(var(--strong)); color: rgb(var(--bg)); }
+
+  /* status glyphs: outline, half, solid, hatched */
+  .st { display: inline-block; width: 10px; height: 10px; border: 1.5px solid rgb(var(--strong)); flex: none; }
+  .st-todo { border-color: rgb(var(--muted)); }
+  .st-in-progress { background: linear-gradient(90deg, rgb(var(--strong)) 50%, transparent 50%); }
+  .st-done { background: rgb(var(--strong)); }
+  .st-blocked { background: repeating-linear-gradient(45deg, rgb(var(--strong)) 0 1.5px, transparent 1.5px 4px); }
+  .seg-done { background: rgb(var(--strong)); }
+  .seg-in-progress { background: rgb(var(--muted)); }
+  .seg-blocked { background: repeating-linear-gradient(45deg, rgb(var(--strong)) 0 2px, rgb(var(--line)) 2px 5px); }
+
+  .flash { animation: flash 1.6s ease-out; }
+  @keyframes flash { from { background: rgb(var(--hover)); outline: 1px solid rgb(var(--strong)); } to { background: transparent; outline-color: transparent; } }
+
+  /* rendered markdown */
+  .md { font-size: 14px; line-height: 1.65; overflow-wrap: anywhere; }
+  .md > :first-child { margin-top: 0; }
+  .md h1, .md h2, .md h3, .md h4 { color: rgb(var(--strong)); font-weight: 600; line-height: 1.3; scroll-margin-top: 16px; }
+  .md h1 { font-size: 1.5rem; margin: 0 0 1rem; }
+  .md h2 { font-size: 1.1rem; margin: 2.25rem 0 .75rem; padding-bottom: .4rem; border-bottom: 1px solid rgb(var(--line)); }
+  .md h3 { font-size: .95rem; margin: 1.75rem 0 .5rem; }
+  .md h4 { font-size: .875rem; margin: 1.25rem 0 .5rem; }
+  .md p, .md ul, .md ol, .md table, .md pre, .md blockquote { margin: .65rem 0; }
+  .md ul { list-style: square; padding-left: 1.25rem; }
+  .md ol { list-style: decimal; padding-left: 1.6rem; }
+  .md li { margin: .2rem 0; padding-left: .15rem; scroll-margin-top: 16px; }
+  .md li:has(> input[type=checkbox]) { list-style: none; margin-left: -1.25rem; }
+  .md input[type=checkbox] { accent-color: rgb(var(--strong)); margin-right: .45rem; transform: translateY(1px); }
+  .md a { color: rgb(var(--strong)); text-decoration: underline; text-underline-offset: 2px; text-decoration-color: rgb(var(--muted)); }
+  .md strong { color: rgb(var(--strong)); }
+  .md code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .85em; background: rgb(var(--hover)); padding: .08rem .3rem; }
+  .md pre { background: rgb(var(--panel)); border: 1px solid rgb(var(--line)); padding: .75rem 1rem; overflow-x: auto; font-size: 12.5px; line-height: 1.55; }
+  .md pre code { background: none; padding: 0; font-size: inherit; }
+  .md blockquote { border-left: 2px solid rgb(var(--strong)); padding-left: .9rem; color: rgb(var(--muted)); }
+  .md table { border-collapse: collapse; width: 100%; font-size: 13px; display: block; overflow-x: auto; }
+  .md th, .md td { border: 1px solid rgb(var(--line)); padding: .35rem .6rem; text-align: left; vertical-align: top; }
+  .md th { background: rgb(var(--panel)); font-weight: 600; color: rgb(var(--strong)); }
+  .md hr { border: 0; border-top: 1px solid rgb(var(--line)); margin: 1.5rem 0; }
+  .md .mermaid { border: 1px solid rgb(var(--line)); padding: 1rem; overflow-x: auto; margin: .75rem 0; text-align: center; }
+  .md .refs { display: inline-flex; gap: .25rem; margin-left: .4rem; vertical-align: 1px; }
+</style>
+<style type="text/tailwindcss">
+  @layer components {
+    .btn { @apply inline-flex items-center gap-1.5 h-7 px-2.5 border border-line bg-bg text-xs text-fg hover:bg-hover hover:border-muted disabled:opacity-40 disabled:pointer-events-none whitespace-nowrap; }
+    .btn-solid { @apply bg-strong text-bg border-strong hover:bg-fg hover:border-fg; }
+    .chip { @apply inline-flex items-center gap-1 border border-line px-1.5 h-5 text-[11px] font-mono text-muted whitespace-nowrap; }
+    .chip-on { @apply bg-strong text-bg border-strong; }
+    .label { @apply text-[10px] font-mono uppercase tracking-[.12em] text-muted; }
+    .tab { @apply h-9 px-3 -mb-px border-b-2 border-transparent text-sm text-muted hover:text-strong whitespace-nowrap; }
+    .tab-on { @apply border-strong text-strong; }
+    .row { @apply flex items-center gap-3 px-3 py-2 border-b border-line last:border-b-0 hover:bg-hover cursor-pointer; }
+    .link { @apply underline underline-offset-2 decoration-muted hover:decoration-strong; }
+  }
+</style>
+</head>
+<body class="font-sans text-sm">
+
+<header class="h-12 border-b border-line flex items-center gap-2 px-4 sticky top-0 bg-bg z-20">
+  <a href="#/" class="font-mono font-semibold text-strong tracking-tight">alper</a>
+  <span id="repoSep" class="text-line hidden">/</span>
+  <span id="repoName" class="font-mono text-muted truncate min-w-0"></span>
+  <div class="ml-auto flex items-center gap-2">
+    <span id="stamp" class="hidden sm:inline text-[11px] font-mono text-muted"></span>
+    <button id="liveBtn" class="btn hidden" title="Re-read the folder every few seconds"></button>
+    <button id="reloadBtn" class="btn hidden" title="Read the folder again">Reload</button>
+    <button id="openBtn" class="btn">Open folder</button>
+  </div>
+</header>
+
+<div class="flex" style="height: calc(100vh - 3rem)">
+  <nav id="sidebar" class="w-60 shrink-0 border-r border-line overflow-y-auto hidden md:block"></nav>
+  <main id="main" class="flex-1 min-w-0 overflow-y-auto"></main>
+</div>
+
+<div id="scrim" class="fixed inset-0 top-12 bg-strong/10 hidden z-20"></div>
+<aside id="drawer" class="fixed top-12 right-0 bottom-0 w-full max-w-2xl bg-bg border-l border-line overflow-y-auto z-30 translate-x-full transition-transform duration-150"></aside>
+
+<input id="dirInput" type="file" webkitdirectory multiple hidden>
+
+<script>
+'use strict';
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+const $ = (sel, el = document) => el.querySelector(sel);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const join = (...parts) => parts.filter(Boolean).join('/');
+const uniq = xs => [...new Set(xs)];
+const pad = v => { const s = String(v ?? '').trim(); return /^\d+$/.test(s) ? s.padStart(2, '0') : s; };
+const asArray = v => Array.isArray(v) ? v : (v ? [v] : []);
+const slugify = s => String(s).toLowerCase().replace(/[`*_]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const plainHeading = s => s.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[`*_]/g, '').trim();
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('alper-dashboard:' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('alper-dashboard:' + k, JSON.stringify(v)); } catch {} },
+};
+function hash(s) { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return h; }
+function parseNums(s) {
+  const out = [];
+  for (const part of String(s).split(/,|\band\b|;/)) {
+    const r = part.trim().match(/^(\d+)\s*[-–]\s*(\d+)$/);
+    if (r) for (let i = +r[1]; i <= +r[2]; i++) out.push(i);
+    else { const n = part.trim().match(/^\d+/); if (n) out.push(+n[0]); }
+  }
+  return uniq(out);
+}
+
+// Directory handles survive reloads in IndexedDB, so a revisit needs one click.
+const idb = {
+  open() {
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('alper-dashboard', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+  },
+  async get(k) {
+    try {
+      const db = await this.open();
+      return await new Promise(res => { const q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => res(undefined); });
+    } catch { return undefined; }
+  },
+  async set(k, v) { try { const db = await this.open(); db.transaction('kv', 'readwrite').objectStore('kv').put(v, k); } catch {} },
+};
+
+// ─── Sources: a live directory handle, or a snapshot from <input webkitdirectory> ──
+
+class HandleSource {
+  constructor(root) { this.root = root; this.name = root.name; this.live = true; }
+  async dir(path) {
+    let h = this.root;
+    for (const part of path.split('/').filter(Boolean)) {
+      try { h = await h.getDirectoryHandle(part); } catch { return null; }
+    }
+    return h;
+  }
+  async list(path) {
+    const d = await this.dir(path);
+    if (!d) return [];
+    const out = [];
+    for await (const [name, h] of d.entries()) out.push({ name, dir: h.kind === 'directory' });
+    return out.sort((a, b) => a.name.localeCompare(b.name));
+  }
+  async read(path) {
+    const parts = path.split('/');
+    const file = parts.pop();
+    const d = await this.dir(parts.join('/'));
+    if (!d) return null;
+    try { return await (await (await d.getFileHandle(file)).getFile()).text(); } catch { return null; }
+  }
+}
+
+// Keeps only what the dashboard reads, so picking a repo root with node_modules stays cheap.
+const KEEP = /(^|\/)docs\/\.specs\/|^\.git\/(HEAD$|packed-refs$|refs\/heads\/|worktrees\/[^/]+\/(HEAD|gitdir)$)/;
+
+class FileListSource {
+  constructor(files) {
+    this.files = new Map();
+    this.dirs = new Map();
+    this.live = false;
+    for (const f of files) {
+      const parts = (f.webkitRelativePath || f.name).split('/');
+      this.name = parts.shift();
+      const rel = parts.join('/');
+      if (!KEEP.test(rel)) continue;
+      this.files.set(rel, f);
+      for (let i = 0; i < parts.length; i++) {
+        const parent = parts.slice(0, i).join('/');
+        if (!this.dirs.has(parent)) this.dirs.set(parent, new Map());
+        this.dirs.get(parent).set(parts[i], i < parts.length - 1);
+      }
+    }
+  }
+  async list(path) {
+    const m = this.dirs.get(path);
+    return m ? [...m].map(([name, dir]) => ({ name, dir })).sort((a, b) => a.name.localeCompare(b.name)) : [];
+  }
+  async read(path) { const f = this.files.get(path); return f ? await f.text() : null; }
+}
+
+// ─── Parsing the alper artifacts (references/artifacts.md) ────────────────────
+
+function unquote(s) { return s.replace(/^(["'])(.*)\1$/, '$2'); }
+function stripComment(v) {
+  let q = null;
+  for (let i = 0; i < v.length; i++) {
+    const c = v[i];
+    if (q) { if (c === q) q = null; }
+    else if (c === '"' || c === "'") q = c;
+    else if (c === '#' && (i === 0 || /\s/.test(v[i - 1]))) return v.slice(0, i).trim();
+  }
+  return v.trim();
+}
+function parseValue(raw) {
+  const v = stripComment(raw);
+  if (v.startsWith('[')) {
+    const inner = v.replace(/^\[|\]$/g, '').trim();
+    return inner ? inner.split(',').map(s => unquote(s.trim())).filter(Boolean) : [];
+  }
+  return unquote(v);
+}
+function parseFrontmatter(text) {
+  text = text.replace(/^﻿/, '').replace(/\r\n?/g, '\n');
+  const m = text.match(/^---\n([\s\S]*?)\n---[ \t]*(\n|$)/);
+  if (!m) return { fm: {}, body: text };
+  const fm = {};
+  for (const line of m[1].split('\n')) {
+    const kv = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
+    if (kv) fm[kv[1]] = parseValue(kv[2]);
+  }
+  return { fm, body: text.slice(m[0].length) };
+}
+
+// Splits markdown into sections at one heading level, ignoring fenced code.
+function sections(body, level = 2) {
+  const re = new RegExp(`^${'#'.repeat(level)} (.+)$`);
+  const out = [];
+  let cur = { title: '', lines: [] };
+  let fence = false;
+  for (const line of body.split('\n')) {
+    if (/^\s*(```|~~~)/.test(line)) fence = !fence;
+    const m = !fence && line.match(re);
+    if (m) { out.push(cur); cur = { title: plainHeading(m[1]), lines: [] }; }
+    else cur.lines.push(line);
+  }
+  out.push(cur);
+  return out.map(s => ({ title: s.title, text: s.lines.join('\n').trim() }));
+}
+const section = (secs, name) => secs.find(s => s.title.toLowerCase() === name.toLowerCase())?.text ?? '';
+
+// Heading ids, in document order, exactly as renderMarkdown assigns them.
+function headingIds(body) {
+  const out = [];
+  const seen = new Map();
+  let fence = false;
+  for (const line of body.split('\n')) {
+    if (/^\s*(```|~~~)/.test(line)) { fence = !fence; continue; }
+    const m = !fence && line.match(/^(#{2,4}) (.+)$/);
+    if (!m) continue;
+    const text = plainHeading(m[2]);
+    out.push({ level: m[1].length, text, id: uniqueId(seen, 'sec-' + slugify(text)) });
+  }
+  return out;
+}
+function uniqueId(seen, id) { const n = seen.get(id) || 0; seen.set(id, n + 1); return n ? `${id}-${n}` : id; }
+
+function parseSpec(text) {
+  const { fm, body } = parseFrontmatter(text);
+  const title = (body.match(/^# (.+)$/m)?.[1] || '').replace(/^Spec:\s*/i, '').trim();
+  const secs = sections(body);
+  const stories = new Map();
+  for (const m of section(secs, 'User Stories').matchAll(/^(\d+)\.\s+(.+)$/gm)) stories.set(+m[1], m[2].trim());
+  const milestones = sections(section(secs, 'Milestones'), 3).filter(s => s.title).map(s => {
+    const h = s.title.match(/^M(\d+)\s+(.+)$/i);
+    return {
+      nn: h ? pad(h[1]) : s.title,
+      slug: h ? h[2].trim() : s.title,
+      stories: parseNums(s.text.match(/^\s*-\s*User stories:\s*(.+)$/mi)?.[1] || ''),
+      criteria: s.text.match(/^\s*-\s*Success criteria:\s*(.+)$/mi)?.[1]?.trim() || '',
+    };
+  });
+  return { fm, title, body, secs, stories, milestones, headings: headingIds(body) };
+}
+
+const STATUSES = ['in-progress', 'blocked', 'todo', 'done'];
+const STATUS_LABEL = { 'todo': 'todo', 'in-progress': 'in progress', 'done': 'done', 'blocked': 'blocked' };
+const normStatus = s => { const v = String(s || 'todo').toLowerCase().replace(/[\s_]+/g, '-'); return STATUS_LABEL[v] ? v : 'todo'; };
+
+function parseTicket(file, text) {
+  const { fm, body } = parseFrontmatter(text);
+  const secs = sections(body);
+  const ac = section(secs, 'Acceptance criteria');
+  const notes = section(secs, 'Notes');
+  const specLine = notes.match(/Spec sections?:\s*(.+)/i)?.[1]?.trim() || '';
+  const storyRefs = [];
+  for (const m of specLine.matchAll(/User Stor(?:y|ies)\s+([\d,\s–-]+(?:\s*and\s*\d+)?)/gi)) storyRefs.push(...parseNums(m[1]));
+  return {
+    file,
+    id: pad(fm.id ?? file.match(/^(\d+)/)?.[1] ?? file),
+    title: fm.title || file.replace(/\.md$/, ''),
+    status: normStatus(fm.status),
+    milestone: fm.milestone ? pad(fm.milestone) : null,
+    blockedBy: asArray(fm['blocked-by']).map(pad),
+    touches: asArray(fm.touches),
+    fm, body,
+    ac: { total: (ac.match(/^\s*[-*]\s+\[[ xX]\]/gm) || []).length, checked: (ac.match(/^\s*[-*]\s+\[[xX]\]/gm) || []).length },
+    specLine,
+    storyRefs: uniq(storyRefs),
+    patterns: uniq([...body.matchAll(/design-patterns\/([a-z0-9-]+)\.md/g)].map(m => m[1])),
+    blockedReason: section(secs, 'Blocked'),
+  };
+}
+
+function parseReview(file, text) {
+  const m = file.match(/^m(\d+)-(.+)\.md$/i);
+  const lines = text.replace(/\r/g, '').split('\n').map(l => l.replace(/[*_`#>|]/g, '').trim()).filter(Boolean);
+  let verdict = null;
+  for (let i = lines.length - 1; i >= 0 && !verdict; i--) {
+    const l = lines[i];
+    const lead = l.match(/^(?:verdict\s*:?\s*)?(clean|fix)\b/i);
+    if (lead) verdict = lead[1].toLowerCase();
+    else if (/\bverdict\b/i.test(l)) verdict = /\bfix\b/i.test(l) ? 'fix' : /\bclean\b/i.test(l) ? 'clean' : null;
+  }
+  return { file, nn: m ? pad(m[1]) : null, slug: m ? m[2] : file, body: text, verdict };
+}
+
+async function readGit(read, list) {
+  const head = (await read('.git/HEAD'))?.trim();
+  if (!head) return null;
+  const branches = new Set();
+  const packed = await read('.git/packed-refs');
+  if (packed) for (const m of packed.matchAll(/^[0-9a-f]{40,64} refs\/heads\/(.+)$/gm)) branches.add(m[1].trim());
+  async function walk(path, prefix) {
+    for (const e of await list(path)) {
+      if (e.dir) await walk(`${path}/${e.name}`, `${prefix}${e.name}/`);
+      else branches.add(prefix + e.name);
+    }
+  }
+  await walk('.git/refs/heads/feat', 'feat/');
+  await walk('.git/refs/heads/milestone', 'milestone/');
+  const worktrees = [];
+  for (const e of await list('.git/worktrees')) {
+    if (!e.dir) continue;
+    const h = (await read(`.git/worktrees/${e.name}/HEAD`))?.trim() || '';
+    const gitdir = ((await read(`.git/worktrees/${e.name}/gitdir`)) || '').trim().replace(/\\/g, '/');
+    worktrees.push({ name: e.name, gitdir, branch: h.replace(/^ref: refs\/heads\//, '') || null });
+  }
+  return { branch: head.replace(/^ref: refs\/heads\//, ''), branches, worktrees };
+}
+
+// ─── Model ──────────────────────────────────────────────────────────────────
+
+const MS_LABEL = { 'not-started': 'not started', 'building': 'building', 'blocked': 'blocked', 'review': 'awaiting review', 'fix': 'fix', 'clean': 'reviewed clean', 'landed': 'landed' };
+
+function countBy(tickets) {
+  const c = { total: tickets.length, 'todo': 0, 'in-progress': 0, 'done': 0, 'blocked': 0 };
+  for (const t of tickets) c[t.status]++;
+  return c;
+}
+
+function milestoneState(m, featExists) {
+  const t = m.tickets;
+  const done = t.filter(x => x.status === 'done').length;
+  if (t.some(x => x.status === 'blocked')) return 'blocked';
+  if (t.length && done === t.length) {
+    if (featExists && m.branchExists === false) return 'landed';
+    if (m.review?.verdict === 'clean') return 'clean';
+    if (m.review?.verdict === 'fix') return 'fix';
+    return 'review';
+  }
+  if (done || t.some(x => x.status === 'in-progress') || m.branchExists) return 'building';
+  return 'not-started';
+}
+
+function buildFeature({ slug, source, basePath, spec, brainstorm, tickets, reviews, git }) {
+  tickets.sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
+  const ms = spec ? spec.milestones.map(m => ({ ...m })) : [];
+  if (!ms.length && (tickets.length || spec)) ms.push({ nn: '01', slug, stories: spec ? [...spec.stories.keys()] : [], criteria: '', implicit: true });
+  const byNN = new Map(ms.map(m => [m.nn, m]));
+  for (const m of ms) { m.tickets = []; m.review = reviews.find(r => r.nn === m.nn) || null; }
+  const unassigned = [];
+  for (const t of tickets) {
+    const m = byNN.get(t.milestone || (ms.length === 1 ? ms[0].nn : '')) || null;
+    (m ? m.tickets : unassigned).push(t);
+    t.ms = m;
+  }
+  if (unassigned.length) ms.push({ nn: '··', slug: 'no milestone', stories: [], criteria: '', tickets: unassigned, review: null, unassigned: true });
+
+  const byId = new Map(tickets.map(t => [t.id, t]));
+  for (const t of tickets) t.blocks = [];
+  for (const t of tickets) for (const b of t.blockedBy) byId.get(b)?.blocks.push(t.id);
+  for (const t of tickets) {
+    t.waitingOn = t.blockedBy.filter(b => byId.get(b)?.status !== 'done');
+    t.ready = t.status === 'todo' && !t.waitingOn.length;
+  }
+
+  const storyTickets = new Map();
+  for (const t of tickets) for (const n of t.storyRefs) { if (!storyTickets.has(n)) storyTickets.set(n, []); storyTickets.get(n).push(t.id); }
+  const storyMilestone = new Map();
+  for (const m of ms) for (const n of m.stories) storyMilestone.set(n, m.nn);
+
+  const featExists = git ? git.branches.has(`feat/${slug}`) : null;
+  for (const m of ms) {
+    m.branch = m.unassigned ? null : `milestone/${slug}/m${m.nn}-${m.slug}`;
+    m.branchExists = git && m.branch ? git.branches.has(m.branch) : null;
+    m.counts = countBy(m.tickets);
+    m.state = m.unassigned ? (m.counts.done === m.counts.total ? 'clean' : 'building') : milestoneState(m, featExists);
+  }
+  const wt = git?.worktrees.find(w => w.gitdir.endsWith(`.claude/worktrees/${slug}/.git`)) || git?.worktrees.find(w => w.name === slug);
+  const counts = countBy(tickets);
+  const real = ms.filter(m => !m.unassigned);
+
+  let stage;
+  if (!spec) stage = 'brainstorm';
+  else if (spec.fm.status !== 'approved') stage = 'spec draft';
+  else if (spec.fm.tickets !== 'approved') stage = spec.fm.tickets === 'draft' ? 'tickets draft' : 'spec approved';
+  else if (real.length && real.every(m => m.state === 'landed')) stage = 'landed';
+  else if (counts.total && counts.done === counts.total) stage = 'tickets done';
+  else if (featExists || counts.done || counts['in-progress'] || counts.blocked) stage = 'building';
+  else stage = 'ready to build';
+
+  const next = ms.flatMap(m => m.tickets).find(t => t.status === 'in-progress') || tickets.find(t => t.ready) || null;
+  return { slug, source, basePath, spec, brainstorm, tickets, byId, milestones: ms, reviews, counts, featExists, worktree: wt || null, stage, storyTickets, storyMilestone, next };
+}
+
+async function loadRepo(src) {
+  const seen = [];
+  const read = async p => { const t = await src.read(p); seen.push(p, t ?? ''); return t; };
+  const list = p => src.list(p);
+
+  let specsPath = null;
+  if ((await list('docs/.specs')).some(e => e.dir)) specsPath = 'docs/.specs';
+  else {
+    for (const e of await list('')) if (e.dir && !e.name.startsWith('.') && (await src.read(`${e.name}/spec.md`)) !== null) { specsPath = ''; break; }
+  }
+  if (specsPath === null) return { name: src.name, error: 'no-specs', features: [], sig: 0 };
+
+  const atRoot = specsPath === 'docs/.specs';
+  const git = atRoot ? await readGit(read, list) : null;
+  if (git) seen.push(git.branch, [...git.branches].sort().join(','), JSON.stringify(git.worktrees));
+
+  const features = [];
+  for (const e of await list(specsPath)) {
+    if (!e.dir || e.name.startsWith('.')) continue;
+    const slug = e.name;
+    let basePath = join(specsPath, slug);
+    let source = 'main';
+    if (atRoot) {
+      const wt = `.claude/worktrees/${slug}/docs/.specs/${slug}`;
+      if ((await src.read(`${wt}/spec.md`)) !== null) { basePath = wt; source = 'worktree'; }
+    }
+    const specText = await read(`${basePath}/spec.md`);
+    const brainText = await read(`${basePath}/brainstorm.md`);
+    const tickets = [];
+    for (const f of await list(`${basePath}/tickets`)) {
+      if (f.dir || !f.name.endsWith('.md')) continue;
+      const t = await read(`${basePath}/tickets/${f.name}`);
+      if (t !== null) tickets.push(parseTicket(f.name, t));
+    }
+    const reviews = [];
+    for (const f of await list(`${basePath}/reviews`)) {
+      if (f.dir || !f.name.endsWith('.md')) continue;
+      const t = await read(`${basePath}/reviews/${f.name}`);
+      if (t !== null) reviews.push(parseReview(f.name, t));
+    }
+    if (specText === null && brainText === null && !tickets.length) continue;
+    features.push(buildFeature({
+      slug, source, basePath, git, tickets, reviews,
+      spec: specText !== null ? parseSpec(specText) : null,
+      brainstorm: brainText !== null ? parseFrontmatter(brainText).body : null,
+    }));
+  }
+  return { name: atRoot ? src.name : `${src.name} (specs only)`, atRoot, git, features, sig: hash(seen.join('\u0000')) };
+}
+
+// ─── State ──────────────────────────────────────────────────────────────────
+
+const state = {
+  src: null,
+  pending: null,          // a remembered handle that needs permission again
+  repo: null,
+  loading: false,
+  live: store.get('live', true),
+  view: store.get('view', 'list'),
+  status: 'all',
+  q: '',
+  loadedAt: null,
+  changedAt: null,
+  lastRouteKey: null,
+};
+
+function route() {
+  const parts = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
+  if (parts[0] !== 'f' || !parts[1]) return { page: 'overview' };
+  return { page: 'feature', slug: parts[1], tab: parts[2] || 'tickets', extra: parts[3] || null };
+}
+const href = (slug, tab, extra) => '#/' + ['f', slug, tab, extra].filter(Boolean).map(encodeURIComponent).join('/');
+const feature = slug => state.repo?.features.find(f => f.slug === slug) || null;
+
+// ─── Markdown ───────────────────────────────────────────────────────────────
+
+function renderMarkdown(md) {
+  if (!window.marked) return `<pre>${esc(md)}</pre>`;
+  const html = marked.parse(md, { gfm: true });
+  return window.DOMPurify ? DOMPurify.sanitize(html) : html;
+}
+
+// Gives h2-h4 the ids headingIds() computed, turns mermaid fences into diagrams.
+function enhanceMarkdown(root) {
+  const seen = new Map();
+  for (const h of root.querySelectorAll('h2, h3, h4')) h.id = uniqueId(seen, 'sec-' + slugify(h.textContent.trim()));
+  const blocks = root.querySelectorAll('pre > code.language-mermaid');
+  if (blocks.length) {
+    for (const code of blocks) {
+      const div = document.createElement('div');
+      div.className = 'mermaid';
+      div.textContent = code.textContent;
+      code.parentElement.replaceWith(div);
+    }
+    renderMermaid(root);
+  }
+}
+
+let mermaidLib = null;
+async function renderMermaid(root) {
+  try {
+    if (!mermaidLib) {
+      mermaidLib = (await import('https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.esm.min.mjs')).default;
+      const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+      mermaidLib.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'neutral', fontFamily: 'ui-sans-serif, system-ui, sans-serif', securityLevel: 'strict' });
+    }
+    await mermaidLib.run({ nodes: [...root.querySelectorAll('.mermaid:not([data-processed])')] });
+  } catch (err) {
+    console.warn('[alper] mermaid', err);
+  }
+}
+
+// ─── Small UI pieces ────────────────────────────────────────────────────────
+
+const glyph = s => `<span class="st st-${esc(s)}" title="${esc(STATUS_LABEL[s] || s)}"></span>`;
+
+function bar(c, h = 'h-1') {
+  if (!c.total) return `<div class="${h} w-full bg-line"></div>`;
+  return `<div class="flex ${h} w-full bg-line">${['done', 'in-progress', 'blocked'].map(s => c[s] ? `<div class="seg-${s}" style="width:${(c[s] / c.total) * 100}%"></div>` : '').join('')}</div>`;
+}
+
+function msBadge(state) {
+  const solid = state === 'landed';
+  return `<span class="chip ${solid ? 'chip-on' : ''} ${state === 'fix' || state === 'blocked' ? 'border-strong text-strong' : ''}">${esc(MS_LABEL[state] || state)}</span>`;
+}
+
+function stageBadge(stage) {
+  return `<span class="chip ${stage === 'landed' ? 'chip-on' : ''}">${esc(stage)}</span>`;
+}
+
+function ticketRef(f, id) {
+  const t = f.byId.get(id);
+  return `<a href="${href(f.slug, 'tickets', id)}" class="inline-flex items-center gap-1 font-mono text-xs hover:underline" title="${esc(t?.title || 'unknown ticket')}">${t ? glyph(t.status) : ''}${esc(id)}</a>`;
+}
+
+function storyRef(f, n) {
+  const text = f.spec?.stories.get(n) || '';
+  return `<a href="${href(f.slug, 'spec', 'story-' + n)}" class="chip hover:border-strong hover:text-strong" title="${esc(text)}">US${n}</a>`;
+}
+
+const inlineCode = s => esc(s).replace(/`([^`]+)`/g, '<code class="font-mono text-[11px] bg-hover px-1">$1</code>');
+
+function empty(msg) { return `<div class="border border-dashed border-line px-4 py-8 text-center text-muted text-sm">${msg}</div>`; }
+
+// ─── Header and sidebar ─────────────────────────────────────────────────────
+
+function renderHeader() {
+  const repo = state.repo;
+  $('#repoName').textContent = repo ? repo.name : '';
+  $('#repoSep').classList.toggle('hidden', !repo);
+  const live = !!state.src?.live;
+  $('#reloadBtn').classList.toggle('hidden', !state.src);
+  $('#liveBtn').classList.toggle('hidden', !live);
+  $('#liveBtn').innerHTML = `<span class="st ${state.live ? 'st-done' : 'st-todo'}" style="width:7px;height:7px"></span>Live`;
+  $('#openBtn').textContent = state.src ? 'Change folder' : 'Open folder';
+  const t = state.loadedAt;
+  $('#stamp').textContent = t ? (state.src.live ? (state.live ? 'live · ' : 'read ') : 'snapshot ') + t.toLocaleTimeString() : '';
+}
+
+function renderSidebar() {
+  const nav = $('#sidebar');
+  const repo = state.repo;
+  if (!repo || !repo.features.length) { nav.innerHTML = ''; nav.classList.add('md:hidden'); return; }
+  nav.classList.remove('md:hidden');
+  const r = route();
+  nav.innerHTML = `
+    <a href="#/" class="flex items-center justify-between px-4 h-10 border-b border-line text-xs ${r.page === 'overview' ? 'bg-hover text-strong' : 'text-muted hover:text-strong'}">
+      <span class="label ${r.page === 'overview' ? 'text-strong' : ''}">Overview</span>
+      <span class="font-mono">${repo.features.length}</span>
+    </a>
+    <div class="py-1">
+      ${repo.features.map(f => `
+        <a href="${href(f.slug)}" class="block px-4 py-2.5 border-l-2 ${r.slug === f.slug ? 'border-strong bg-hover' : 'border-transparent hover:bg-hover'}">
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-mono text-xs truncate ${r.slug === f.slug ? 'text-strong' : ''}">${esc(f.slug)}</span>
+            <span class="font-mono text-[11px] text-muted shrink-0">${f.counts.done}/${f.counts.total}</span>
+          </div>
+          <div class="mt-1.5">${bar(f.counts, 'h-0.5')}</div>
+          <div class="mt-1.5 text-[11px] text-muted">${esc(f.stage)}${f.counts.blocked ? ` · ${f.counts.blocked} blocked` : ''}${f.source === 'worktree' ? ' · worktree' : ''}</div>
+        </a>`).join('')}
+    </div>`;
+}
+
+// ─── Pages ──────────────────────────────────────────────────────────────────
+
+function renderWelcome() {
+  const pending = state.pending;
+  const picker = 'showDirectoryPicker' in window;
+  return `
+    <div class="max-w-xl mx-auto px-4 py-20">
+      <div class="label mb-3">alper · dashboard</div>
+      <h1 class="text-2xl font-semibold text-strong tracking-tight">Every feature, ticket and review in one place.</h1>
+      <p class="mt-3 text-muted leading-relaxed">Pick the repository root, the folder holding <code class="font-mono text-fg">docs/.specs</code>. The dashboard only reads: specs, tickets, reviews, and the git refs that say which milestones landed. A running build is read from its worktree.</p>
+      ${state.repo?.error === 'no-specs' ? `<p class="mt-4 border border-strong px-3 py-2 text-xs">No <code class="font-mono">docs/.specs</code> in <b>${esc(state.repo.name)}</b>. Pick the repository root, or <code class="font-mono">docs/.specs</code> itself.</p>` : ''}
+      <div class="mt-8 flex flex-wrap gap-2">
+        ${pending ? `<button data-act="reconnect" class="btn btn-solid h-9 px-4 text-sm">Reopen ${esc(pending.name)}</button>` : ''}
+        <button data-act="open" class="btn ${pending ? '' : 'btn-solid'} h-9 px-4 text-sm">Open repository folder</button>
+      </div>
+      <p class="mt-6 text-xs text-muted leading-relaxed">${picker
+        ? 'This browser reads the folder live: with Live on, the board follows a running build as its tickets change.'
+        : 'This browser can only load a snapshot. Use Chrome or Edge to follow a build live; here, press Reload after a change and pick the folder again.'}</p>
+    </div>`;
+}
+
+function renderOverview() {
+  const fs = state.repo.features;
+  if (!fs.length) return `<div class="max-w-5xl mx-auto px-4 sm:px-6 py-8">${empty('No feature under <code class="font-mono">docs/.specs</code> yet. Start one with <code class="font-mono">/alper:brainstorm</code>.')}</div>`;
+  const all = fs.flatMap(f => f.tickets);
+  const c = countBy(all);
+  const active = fs.flatMap(f => f.tickets.filter(t => t.status === 'in-progress' || t.status === 'blocked').map(t => ({ f, t })));
+  const fixes = fs.flatMap(f => f.milestones.filter(m => m.state === 'fix').map(m => ({ f, m })));
+  const stat = (label, n) => `<div class="border border-line px-4 py-3 first:col-span-2 sm:first:col-span-1"><div class="label">${label}</div><div class="mt-1 text-2xl font-semibold text-strong font-mono">${n}</div></div>`;
+  return `
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+      <div class="label">Overview</div>
+      <h1 class="mt-1 text-xl font-semibold text-strong tracking-tight">${esc(state.repo.name)}</h1>
+      <div class="mt-6 grid grid-cols-2 sm:grid-cols-5 gap-px bg-line border border-line [&>*]:border-0 [&>*]:bg-bg">
+        ${stat('Features', fs.length)}${stat('Tickets', c.total)}${stat('Done', c.done)}${stat('In progress', c['in-progress'])}${stat('Blocked', c.blocked)}
+      </div>
+      <div class="mt-2">${bar(c, 'h-1')}</div>
+
+      ${active.length || fixes.length ? `
+      <h2 class="label mt-10 mb-2">Now</h2>
+      <div class="border border-line">
+        ${active.map(({ f, t }) => `
+          <a href="${href(f.slug, 'tickets', t.id)}" class="row">
+            ${glyph(t.status)}
+            <span class="font-mono text-xs text-muted w-40 truncate">${esc(f.slug)}</span>
+            <span class="font-mono text-xs">${esc(t.id)}</span>
+            <span class="truncate flex-1 text-strong">${esc(t.title)}</span>
+            <span class="chip">${esc(STATUS_LABEL[t.status])}</span>
+          </a>`).join('')}
+        ${fixes.map(({ f, m }) => `
+          <a href="${href(f.slug, 'reviews')}" class="row">
+            <span class="st st-blocked"></span>
+            <span class="font-mono text-xs text-muted w-40 truncate">${esc(f.slug)}</span>
+            <span class="font-mono text-xs">M${esc(m.nn)}</span>
+            <span class="truncate flex-1 text-strong">${esc(m.slug)}: review asks for fixes</span>
+            <span class="chip border-strong text-strong">fix</span>
+          </a>`).join('')}
+      </div>` : ''}
+
+      <h2 class="label mt-10 mb-2">Features</h2>
+      <div class="border border-line overflow-x-auto">
+        <table class="w-full text-sm min-w-[640px]">
+          <thead><tr class="border-b border-line text-left">
+            <th class="label font-normal px-3 py-2">Feature</th>
+            <th class="label font-normal px-3 py-2">Stage</th>
+            <th class="label font-normal px-3 py-2">Milestones</th>
+            <th class="label font-normal px-3 py-2 w-48">Tickets</th>
+            <th class="label font-normal px-3 py-2">Next</th>
+          </tr></thead>
+          <tbody>
+            ${fs.map(f => {
+              const real = f.milestones.filter(m => !m.unassigned);
+              return `
+              <tr class="border-b border-line last:border-b-0 hover:bg-hover cursor-pointer" data-go="${href(f.slug)}">
+                <td class="px-3 py-3 align-top">
+                  <div class="font-mono text-xs text-strong">${esc(f.slug)}</div>
+                  <div class="text-xs text-muted mt-0.5 truncate max-w-[16rem]">${esc(f.spec?.title || '')}</div>
+                </td>
+                <td class="px-3 py-3 align-top">${stageBadge(f.stage)}${f.source === 'worktree' ? ' <span class="chip">worktree</span>' : ''}</td>
+                <td class="px-3 py-3 align-top">
+                  <div class="flex gap-1">${real.map(m => `<span class="st ${m.state === 'landed' ? 'st-done' : m.state === 'not-started' ? 'st-todo' : m.state === 'blocked' || m.state === 'fix' ? 'st-blocked' : 'st-in-progress'}" title="M${esc(m.nn)} ${esc(m.slug)}: ${esc(MS_LABEL[m.state])}"></span>`).join('')}</div>
+                  <div class="text-[11px] text-muted mt-1 font-mono">${real.filter(m => m.state === 'landed').length}/${real.length} landed</div>
+                </td>
+                <td class="px-3 py-3 align-top">
+                  ${bar(f.counts, 'h-1')}
+                  <div class="text-[11px] text-muted mt-1 font-mono">${f.counts.done}/${f.counts.total} done${f.counts['in-progress'] ? ` · ${f.counts['in-progress']} active` : ''}${f.counts.blocked ? ` · ${f.counts.blocked} blocked` : ''}</div>
+                </td>
+                <td class="px-3 py-3 align-top text-xs">${f.next ? `<span class="inline-flex items-center gap-1.5">${glyph(f.next.status)}<span class="font-mono">${esc(f.next.id)}</span> <span class="truncate max-w-[14rem] inline-block align-bottom">${esc(f.next.title)}</span></span>` : '<span class="text-muted">—</span>'}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function featureHeader(f, tab) {
+  const s = f.spec?.fm || {};
+  const c = f.counts;
+  const tabs = [
+    ['tickets', `Tickets <span class="font-mono text-[11px] text-muted ml-1">${c.total}</span>`],
+    ['spec', 'Spec'],
+    ['brainstorm', 'Brainstorm'],
+    ['reviews', `Reviews <span class="font-mono text-[11px] text-muted ml-1">${f.reviews.length}</span>`],
+  ];
+  const stat = (label, n, st) => `<div class="px-4 py-3 bg-bg first:col-span-2 sm:first:col-span-1"><div class="label flex items-center gap-1.5">${st ? glyph(st) : ''}${label}</div><div class="mt-1 text-xl font-semibold font-mono text-strong">${n}</div></div>`;
+  const where = f.source === 'worktree'
+    ? `<span class="chip" title="Read from the build worktree, where the build updates tickets">worktree</span>`
+    : `<span class="chip" title="Read from the main checkout">main checkout</span>`;
+  return `
+    <div class="px-4 sm:px-6 pt-6">
+      <div class="text-xs text-muted"><a href="#/" class="hover:text-strong">Features</a> <span class="text-line mx-1">/</span> <span class="font-mono">${esc(f.slug)}</span></div>
+      <h1 class="mt-2 text-xl font-semibold text-strong tracking-tight">${esc(f.spec?.title || f.slug)}</h1>
+      <div class="mt-3 flex flex-wrap items-center gap-1.5">
+        ${stageBadge(f.stage)}
+        ${f.spec ? `<span class="chip">spec ${esc(s.status || '—')}</span><span class="chip">tickets ${esc(s.tickets || '—')}</span>` : ''}
+        ${s.base ? `<span class="chip">base ${esc(s.base)}</span>` : ''}
+        ${where}
+        ${f.worktree?.branch ? `<span class="chip" title="Branch checked out in the build worktree">⎇ ${esc(f.worktree.branch)}</span>` : f.featExists ? `<span class="chip">⎇ feat/${esc(f.slug)}</span>` : ''}
+        <span class="chip" title="${esc(f.basePath)}">${esc(f.basePath)}</span>
+      </div>
+      ${c.total ? `
+      <div class="mt-5 grid grid-cols-2 sm:grid-cols-5 gap-px bg-line border border-line">
+        ${stat('Total', c.total)}${stat('Done', c.done, 'done')}${stat('In progress', c['in-progress'], 'in-progress')}${stat('Todo', c.todo, 'todo')}${stat('Blocked', c.blocked, 'blocked')}
+      </div>
+      <div class="mt-2">${bar(c, 'h-1')}</div>` : ''}
+      <div class="mt-6 flex gap-1 border-b border-line overflow-x-auto">
+        ${tabs.map(([k, label]) => `<a href="${href(f.slug, k)}" class="tab ${tab === k ? 'tab-on' : ''}">${label}</a>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderFeature(r) {
+  const f = feature(r.slug);
+  if (!f) return `<div class="max-w-5xl mx-auto px-4 sm:px-6 py-8">${empty(`No feature <code class="font-mono">${esc(r.slug)}</code>. <a class="link" href="#/">Back to the overview</a>.`)}</div>`;
+  const body = {
+    tickets: () => renderTicketsTab(f),
+    spec: () => renderDocTab(f.spec ? f.spec.body : null, 'No <code class="font-mono">spec.md</code> yet. Write it with <code class="font-mono">/alper:spec</code>.', f),
+    brainstorm: () => renderDocTab(f.brainstorm, 'No <code class="font-mono">brainstorm.md</code>.'),
+    reviews: () => renderReviewsTab(f),
+  }[r.tab] || (() => empty('Unknown tab.'));
+  return `<div class="max-w-6xl mx-auto pb-16">${featureHeader(f, r.tab)}<div class="px-4 sm:px-6 pt-5">${body()}</div></div>`;
+}
+
+function renderTicketsTab(f) {
+  if (!f.tickets.length) return empty(f.spec ? 'No tickets yet. <code class="font-mono">/alper:spec</code> writes them once the spec is approved.' : 'No spec and no tickets yet.');
+  const filters = ['all', ...STATUSES].map(s => {
+    const n = s === 'all' ? f.counts.total : f.counts[s];
+    return `<button data-status="${s}" class="btn ${state.status === s ? 'btn-solid' : ''}">${s === 'all' ? '' : glyph(s)}${esc(s === 'all' ? 'All' : STATUS_LABEL[s])}<span class="font-mono opacity-60">${n}</span></button>`;
+  }).join('');
+  return `
+    <div class="flex flex-wrap items-center gap-2 mb-5">
+      <input id="search" type="search" value="${esc(state.q)}" placeholder="Filter by id, title or module" class="h-7 w-full sm:w-64 border border-line bg-bg px-2.5 text-xs outline-none focus:border-strong placeholder:text-muted">
+      <div class="flex flex-wrap gap-1">${filters}</div>
+      <div class="sm:ml-auto flex">
+        <button data-view="list" class="btn ${state.view === 'list' ? 'btn-solid' : ''}">List</button>
+        <button data-view="board" class="btn -ml-px ${state.view === 'board' ? 'btn-solid' : ''}">Board</button>
+      </div>
+    </div>
+    <div id="ticketArea">${renderTicketArea(f)}</div>`;
+}
+
+function matches(t) {
+  if (state.status !== 'all' && t.status !== state.status) return false;
+  const q = state.q.trim().toLowerCase();
+  if (!q) return true;
+  return [t.id, t.title, t.file, ...t.touches].some(v => String(v).toLowerCase().includes(q));
+}
+
+function renderTicketArea(f) {
+  return state.view === 'board' ? renderBoard(f) : renderList(f);
+}
+
+// Developers rarely tick the boxes, so a count reads better than 0/N until one is ticked.
+const acText = t => t.ac.checked ? `${t.ac.checked}/${t.ac.total}` : `${t.ac.total}`;
+
+function ticketRow(f, t) {
+  const ac = t.ac.total ? `<span class="font-mono text-[11px] text-muted" title="Acceptance criteria">${acText(t)} AC</span>` : '';
+  const wait = t.status === 'todo' && t.waitingOn.length
+    ? `<span class="text-[11px] text-muted">waits ${t.waitingOn.map(esc).join(', ')}</span>`
+    : t.ready ? `<span class="text-[11px] text-strong">ready</span>` : '';
+  return `
+    <div class="row" data-go="${href(f.slug, 'tickets', t.id)}">
+      ${glyph(t.status)}
+      <span class="font-mono text-xs w-6 shrink-0 ${t.status === 'done' ? 'text-muted' : 'text-strong'}">${esc(t.id)}</span>
+      <span class="flex-1 min-w-0 truncate ${t.status === 'done' ? 'text-muted' : 'text-strong'}">${esc(t.title)}</span>
+      <span class="hidden lg:flex gap-1 shrink-0">${t.touches.slice(0, 3).map(m => `<span class="chip">${esc(m)}</span>`).join('')}</span>
+      <span class="hidden sm:inline shrink-0">${wait}</span>
+      <span class="shrink-0 w-14 text-right">${ac}</span>
+    </div>`;
+}
+
+function renderList(f) {
+  const groups = f.milestones.map(m => ({ m, ts: m.tickets.filter(matches) })).filter(g => g.ts.length || (state.status === 'all' && !state.q));
+  if (!groups.some(g => g.ts.length)) return empty('No ticket matches the filter.');
+  return groups.map(({ m, ts }) => `
+    <section class="mb-8">
+      <div class="flex flex-wrap items-center gap-2 mb-2">
+        <span class="font-mono text-xs font-semibold text-strong">M${esc(m.nn)}</span>
+        <span class="font-mono text-xs">${esc(m.slug)}</span>
+        ${msBadge(m.state)}
+        ${m.review ? `<a href="${href(f.slug, 'reviews', m.review.file)}" class="chip hover:border-strong hover:text-strong">review: ${esc(m.review.verdict || 'saved')}</a>` : ''}
+        ${m.implicit ? '<span class="chip" title="The spec declares no milestones: one implicit milestone">implicit</span>' : ''}
+        <span class="ml-auto font-mono text-[11px] text-muted">${m.counts.done}/${m.counts.total} done</span>
+      </div>
+      <div class="mb-2">${bar(m.counts, 'h-0.5')}</div>
+      ${m.stories.length || m.criteria ? `
+      <details class="mb-2 group">
+        <summary class="cursor-pointer select-none text-[11px] text-muted hover:text-strong list-none flex items-center gap-1"><span class="font-mono group-open:rotate-90 inline-block transition-transform">›</span> ${m.stories.length} user stories${m.criteria ? ' · success criteria' : ''}</summary>
+        <div class="mt-2 border-l border-line pl-3 space-y-2">
+          ${m.stories.length ? `<div class="flex flex-wrap gap-1">${m.stories.map(n => storyRef(f, n)).join('')}</div>` : ''}
+          ${m.criteria ? `<div class="text-xs leading-relaxed">${esc(m.criteria)}</div>` : ''}
+        </div>
+      </details>` : ''}
+      <div class="border border-line">${ts.length ? ts.map(t => ticketRow(f, t)).join('') : '<div class="px-3 py-3 text-xs text-muted">No tickets.</div>'}</div>
+    </section>`).join('');
+}
+
+function renderBoard(f) {
+  const cols = ['todo', 'in-progress', 'blocked', 'done'];
+  const multi = f.milestones.length > 1;
+  return `
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line border border-line">
+      ${cols.map(s => {
+        const ts = f.tickets.filter(t => t.status === s && matches(t));
+        return `
+        <div class="bg-bg min-h-[8rem]">
+          <div class="flex items-center gap-1.5 px-3 h-9 border-b border-line">${glyph(s)}<span class="label text-fg">${esc(STATUS_LABEL[s])}</span><span class="ml-auto font-mono text-[11px] text-muted">${ts.length}</span></div>
+          <div class="p-2 space-y-2">
+            ${ts.map(t => `
+              <div class="border border-line bg-bg hover:border-strong cursor-pointer p-2.5" data-go="${href(f.slug, 'tickets', t.id)}">
+                <div class="flex items-center gap-1.5 text-[11px] font-mono text-muted">
+                  <span class="text-strong">${esc(t.id)}</span>
+                  ${multi && t.ms ? `<span>· M${esc(t.ms.nn)}</span>` : ''}
+                  ${t.ac.total ? `<span class="ml-auto">${acText(t)} AC</span>` : ''}
+                </div>
+                <div class="mt-1 text-[13px] leading-snug text-strong">${esc(t.title)}</div>
+                ${t.waitingOn.length && s !== 'done' ? `<div class="mt-1.5 text-[11px] text-muted">waits ${t.waitingOn.map(esc).join(', ')}</div>` : ''}
+              </div>`).join('') || '<div class="px-1 py-2 text-[11px] text-muted">—</div>'}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function renderDocTab(md, missing, f) {
+  if (md === null || md === undefined) return empty(missing);
+  const toc = f?.spec ? f.spec.headings.filter(h => h.level <= 3) : [];
+  return `
+    <div class="flex gap-8">
+      ${toc.length ? `
+      <aside class="hidden xl:block w-52 shrink-0">
+        <div class="sticky top-4">
+          <div class="label mb-2">Contents</div>
+          <nav class="text-xs space-y-1 border-l border-line">
+            ${toc.map(h => `<a href="${href(f.slug, 'spec', h.id)}" class="block truncate hover:text-strong text-muted ${h.level === 3 ? 'pl-6' : 'pl-3'}">${esc(h.text)}</a>`).join('')}
+          </nav>
+        </div>
+      </aside>` : ''}
+      <article id="doc" class="md flex-1 min-w-0 max-w-3xl">${renderMarkdown(md)}</article>
+    </div>`;
+}
+
+function renderReviewsTab(f) {
+  if (!f.reviews.length) return empty('No saved review yet. <code class="font-mono">/alper:build</code> saves one per milestone under <code class="font-mono">reviews/</code>.');
+  return f.reviews.map(rv => {
+    const m = f.milestones.find(x => x.nn === rv.nn);
+    return `
+    <details id="review-${esc(rv.file)}" class="border border-line mb-3 group" open>
+      <summary class="flex items-center gap-2 px-3 h-10 cursor-pointer select-none list-none hover:bg-hover">
+        <span class="font-mono text-xs group-open:rotate-90 inline-block transition-transform">›</span>
+        <span class="font-mono text-xs font-semibold text-strong">${rv.nn ? 'M' + esc(rv.nn) : ''}</span>
+        <span class="font-mono text-xs">${esc(rv.slug)}</span>
+        ${m ? msBadge(m.state) : ''}
+        <span class="ml-auto chip ${rv.verdict === 'clean' ? 'chip-on' : rv.verdict === 'fix' ? 'border-strong text-strong' : ''}">${esc(rv.verdict || 'no verdict')}</span>
+      </summary>
+      <div class="md px-4 py-4 border-t border-line">${renderMarkdown(rv.body)}</div>
+    </details>`;
+  }).join('');
+}
+
+// ─── Ticket drawer ──────────────────────────────────────────────────────────
+
+function renderDrawer() {
+  const r = route();
+  const drawer = $('#drawer');
+  const f = r.page === 'feature' && r.tab === 'tickets' && r.extra ? feature(r.slug) : null;
+  const t = f?.byId.get(r.extra);
+  const open = !!t;
+  drawer.classList.toggle('translate-x-full', !open);
+  $('#scrim').classList.toggle('hidden', !open);
+  if (!open) { drawer.dataset.key = ''; return; }
+
+  const key = `${f.slug}/${t.id}`;
+  const keepScroll = drawer.dataset.key === key ? drawer.scrollTop : 0;
+  drawer.dataset.key = key;
+
+  const meta = (label, value) => `<div class="px-3 py-2.5 bg-bg"><div class="label">${label}</div><div class="mt-1 text-xs">${value || '<span class="text-muted">—</span>'}</div></div>`;
+  const m = t.ms;
+  const otherRefs = t.specLine.split(';').map(s => s.trim()).filter(s => s && !/^User Stor/i.test(s));
+  const resolveRef = ref => {
+    const [head, sub] = ref.split('›').map(s => plainHeading(s || ''));
+    const hs = f.spec?.headings || [];
+    const lower = head.toLowerCase();
+    const top = hs.find(h => h.level === 2 && lower.startsWith(h.text.toLowerCase().slice(0, Math.max(6, h.text.length - 2))));
+    const deep = sub && hs.find(h => h.level > 2 && h.text.toLowerCase().includes(sub.toLowerCase()));
+    const target = deep || top;
+    const text = inlineCode(ref.replace(/\.$/, ''));
+    return target ? `<a class="link" href="${href(f.slug, 'spec', target.id)}">${text}</a>` : text;
+  };
+  const path = `${f.basePath}/tickets/${t.file}`;
+
+  drawer.innerHTML = `
+    <div class="sticky top-0 bg-bg border-b border-line flex items-center gap-2 px-4 h-11 z-10">
+      <span class="font-mono text-[11px] text-muted truncate" title="${esc(path)}">${esc(path)}</span>
+      <button data-copy="${esc(path)}" class="btn ml-auto">Copy path</button>
+      <a href="${href(f.slug, 'tickets')}" class="btn" title="Close (Esc)">✕</a>
+    </div>
+    <div class="px-5 py-5">
+      <div class="flex items-center gap-2">
+        ${glyph(t.status)}
+        <span class="label text-fg">${esc(STATUS_LABEL[t.status])}</span>
+        <span class="font-mono text-xs text-muted">· ticket ${esc(t.id)}${m ? ` · M${esc(m.nn)} ${esc(m.slug)}` : ''}</span>
+      </div>
+      <h2 class="mt-2 text-lg font-semibold text-strong leading-snug">${esc(t.title)}</h2>
+
+      ${t.status === 'blocked' && t.blockedReason ? `
+      <div class="mt-4 border border-strong">
+        <div class="px-3 py-1.5 border-b border-strong flex items-center gap-1.5">${glyph('blocked')}<span class="label text-strong">Blocked</span></div>
+        <div class="md px-3 py-2 text-xs">${renderMarkdown(t.blockedReason)}</div>
+      </div>` : ''}
+
+      <div class="mt-5 grid grid-cols-2 gap-px bg-line border border-line [&>*:last-child:nth-child(odd)]:col-span-2">
+        ${meta('Blocked by', t.blockedBy.map(id => ticketRef(f, id)).join('<span class="text-line"> · </span>'))}
+        ${meta('Blocks', t.blocks.map(id => ticketRef(f, id)).join('<span class="text-line"> · </span>'))}
+        ${meta('Touches', t.touches.map(x => `<span class="chip">${esc(x)}</span>`).join(' '))}
+        ${meta('Acceptance', t.ac.total ? `<span class="font-mono">${t.ac.total}</span> criteria${t.ac.checked ? `, <span class="font-mono">${t.ac.checked}</span> checked` : ''}` : '')}
+        ${t.fm.branch ? meta('Branch', `<span class="font-mono break-all">${esc(t.fm.branch)}</span>`) : ''}
+        ${meta('Milestone', m && !m.unassigned ? `<span class="font-mono">M${esc(m.nn)}</span> ${msBadge(m.state)}` : '')}
+      </div>
+
+      <h3 class="label mt-6 mb-2">Spec references</h3>
+      <div class="border border-line divide-y divide-line">
+        ${t.storyRefs.length ? `
+        <div class="px-3 py-2.5">
+          <div class="text-[11px] text-muted mb-1.5">User stories this ticket implements</div>
+          <ul class="space-y-1.5">
+            ${t.storyRefs.map(n => `<li class="flex gap-2 text-xs leading-relaxed"><a href="${href(f.slug, 'spec', 'story-' + n)}" class="chip shrink-0 hover:border-strong hover:text-strong">US${n}</a><span>${esc(f.spec?.stories.get(n) || 'not found in the spec')}</span></li>`).join('')}
+          </ul>
+        </div>` : ''}
+        ${otherRefs.length ? `
+        <div class="px-3 py-2.5">
+          <div class="text-[11px] text-muted mb-1.5">Spec sections</div>
+          <ul class="space-y-1 text-xs">${otherRefs.map(ref => `<li>${resolveRef(ref)}</li>`).join('')}</ul>
+        </div>` : ''}
+        ${m && !m.unassigned && (m.stories.length || m.criteria) ? `
+        <div class="px-3 py-2.5">
+          <div class="text-[11px] text-muted mb-1.5">Milestone M${esc(m.nn)} ${esc(m.slug)}</div>
+          ${m.stories.length ? `<div class="flex flex-wrap gap-1">${m.stories.map(n => storyRef(f, n)).join('')}</div>` : ''}
+          ${m.criteria ? `<div class="mt-2 text-xs leading-relaxed">${esc(m.criteria)}</div>` : ''}
+        </div>` : ''}
+        ${t.patterns.length ? `
+        <div class="px-3 py-2.5">
+          <div class="text-[11px] text-muted mb-1.5">Design patterns</div>
+          <div class="flex flex-wrap gap-1">${t.patterns.map(p => `<span class="chip">${esc(p)}</span>`).join('')}</div>
+        </div>` : ''}
+        ${!t.storyRefs.length && !otherRefs.length && !t.patterns.length && !(m && (m.stories.length || m.criteria)) ? '<div class="px-3 py-2.5 text-xs text-muted">The ticket names no spec section.</div>' : ''}
+      </div>
+
+      <h3 class="label mt-6 mb-2">Ticket</h3>
+      <article class="md">${renderMarkdown(t.body)}</article>
+    </div>`;
+  enhanceMarkdown(drawer);
+  drawer.scrollTop = keepScroll;
+}
+
+// ─── Main render ────────────────────────────────────────────────────────────
+
+function render() {
+  renderHeader();
+  renderSidebar();
+  const main = $('#main');
+  const r = route();
+  const key = r.page === 'feature' ? `${r.slug}/${r.tab}/${r.tab === 'tickets' ? '' : r.extra || ''}` : r.page;
+  const keepScroll = key === state.lastRouteKey ? main.scrollTop : 0;
+
+  if (!state.repo || state.repo.error) main.innerHTML = renderWelcome();
+  else if (r.page === 'overview') main.innerHTML = renderOverview();
+  else main.innerHTML = renderFeature(r);
+
+  const doc = $('#doc');
+  if (doc) { enhanceMarkdown(doc); if (r.tab === 'spec') decorateSpec(doc, feature(r.slug)); }
+  main.querySelectorAll('.md').forEach(el => { if (el !== doc && !el.closest('#doc')) enhanceMarkdown(el); });
+
+  const anchorChanged = key !== state.lastRouteKey;
+  state.lastRouteKey = key;
+  main.scrollTop = keepScroll;
+  if (anchorChanged && r.extra && r.tab !== 'tickets') {
+    const target = document.getElementById(r.tab === 'reviews' ? 'review-' + r.extra : r.extra);
+    if (target) { target.scrollIntoView({ block: 'start' }); target.classList.add('flash'); }
+  }
+  renderDrawer();
+}
+
+// Story ids on the User Stories list, and the tickets that implement each story.
+function decorateSpec(doc, f) {
+  if (!f) return;
+  const h = [...doc.querySelectorAll('h2')].find(x => x.textContent.trim().toLowerCase() === 'user stories');
+  if (!h) return;
+  for (let el = h.nextElementSibling; el && el.tagName !== 'H2'; el = el.nextElementSibling) {
+    if (el.tagName !== 'OL') continue;
+    const start = +(el.getAttribute('start') || 1);
+    [...el.children].forEach((li, i) => {
+      const n = start + i;
+      li.id = 'story-' + n;
+      const ids = f.storyTickets.get(n) || [];
+      const ms = f.storyMilestone.get(n);
+      if (!ids.length && !ms) return;
+      const span = document.createElement('span');
+      span.className = 'refs';
+      span.innerHTML = (ms ? `<span class="chip">M${esc(ms)}</span>` : '') + ids.map(id => {
+        const t = f.byId.get(id);
+        return `<a href="${href(f.slug, 'tickets', id)}" class="chip hover:border-strong hover:text-strong no-underline" title="${esc(t?.title || '')}">${t ? glyph(t.status) : ''}${esc(id)}</a>`;
+      }).join('');
+      li.appendChild(span);
+    });
+  }
+}
+
+// ─── Loading ────────────────────────────────────────────────────────────────
+
+async function connect(src) {
+  state.src = src;
+  state.pending = null;
+  await reload(true);
+}
+
+async function reload(force) {
+  if (!state.src || state.loading) return;
+  state.loading = true;
+  try {
+    const repo = await loadRepo(state.src);
+    state.loadedAt = new Date();
+    if (force || !state.repo || repo.sig !== state.repo.sig) {
+      state.repo = repo;
+      state.changedAt = state.loadedAt;
+      render();
+    } else renderHeader();
+  } catch (err) {
+    console.error('[alper] load failed', err);
+    if (err?.name === 'NotAllowedError' || err?.name === 'NotFoundError') {
+      state.pending = state.src.root || null;
+      state.src = null;
+      state.repo = null;
+      render();
+    }
+  } finally {
+    state.loading = false;
+  }
+}
+
+async function openFolder() {
+  if ('showDirectoryPicker' in window) {
+    try {
+      const h = await window.showDirectoryPicker({ id: 'alper-repo', mode: 'read' });
+      await idb.set('root', h);
+      return connect(new HandleSource(h));
+    } catch (err) {
+      if (err?.name === 'AbortError') return;
+      console.warn('[alper] directory picker unavailable, using the file input', err);
+    }
+  }
+  $('#dirInput').click();
+}
+
+async function reconnect() {
+  const h = state.pending;
+  if (!h) return;
+  try {
+    if ((await h.requestPermission({ mode: 'read' })) === 'granted') return connect(new HandleSource(h));
+  } catch (err) {
+    console.warn('[alper] reconnect failed', err);
+  }
+  openFolder();
+}
+
+$('#dirInput').addEventListener('change', e => {
+  const files = [...e.target.files];
+  e.target.value = '';
+  if (files.length) connect(new FileListSource(files));
+});
+
+// ─── Events ─────────────────────────────────────────────────────────────────
+
+$('#openBtn').addEventListener('click', openFolder);
+$('#reloadBtn').addEventListener('click', () => state.src?.live ? reload(true) : openFolder());
+$('#liveBtn').addEventListener('click', () => { state.live = !state.live; store.set('live', state.live); renderHeader(); });
+$('#scrim').addEventListener('click', () => { const r = route(); location.hash = href(r.slug, 'tickets'); });
+window.addEventListener('hashchange', render);
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const r = route();
+  if (r.page === 'feature' && r.tab === 'tickets' && r.extra) location.hash = href(r.slug, 'tickets');
+});
+
+document.addEventListener('click', e => {
+  const act = e.target.closest('[data-act]')?.dataset.act;
+  if (act === 'open') return openFolder();
+  if (act === 'reconnect') return reconnect();
+
+  const status = e.target.closest('[data-status]')?.dataset.status;
+  if (status) { state.status = status; return render(); }
+  const view = e.target.closest('[data-view]')?.dataset.view;
+  if (view) { state.view = view; store.set('view', view); return render(); }
+
+  const copy = e.target.closest('[data-copy]');
+  if (copy) {
+    navigator.clipboard?.writeText(copy.dataset.copy).then(() => { copy.textContent = 'Copied'; setTimeout(() => { copy.textContent = 'Copy path'; }, 1200); }).catch(() => {});
+    return;
+  }
+  const go = e.target.closest('[data-go]');
+  if (go && !e.target.closest('a')) location.hash = go.dataset.go;
+});
+
+document.addEventListener('input', e => {
+  if (e.target.id !== 'search') return;
+  state.q = e.target.value;
+  const f = feature(route().slug);
+  if (f) $('#ticketArea').innerHTML = renderTicketArea(f);
+});
+
+setInterval(() => {
+  if (state.live && state.src?.live && !document.hidden) reload(false);
+}, 3000);
+
+(async function boot() {
+  render();
+  const h = await idb.get('root');
+  if (!h?.queryPermission) return;
+  try {
+    if ((await h.queryPermission({ mode: 'read' })) === 'granted') return connect(new HandleSource(h));
+  } catch {}
+  state.pending = h;
+  render();
+})();
+</script>
+</body>
+</html>

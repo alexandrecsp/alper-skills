@@ -1,6 +1,6 @@
 ---
 name: setup-repository
-description: "Prepare a repo for alper once: an agent-workflow block with the build settings, a confirmed GLOSSARY.md, and coding standards when none exist."
+description: "Prepare a repo for alper once: an agent-workflow block with the build settings, a confirmed GLOSSARY.md, coding standards when none exist, and the specs dashboard."
 disable-model-invocation: true
 metadata:
   type: process
@@ -10,7 +10,7 @@ metadata:
 
 ## Overview
 
-Writes the three things every alper skill reads: a pointer block in the repo's agent file carrying the build settings, a glossary of terms the user confirmed, and a written coding standard for the Standards reviewer. It also git-ignores the build worktrees. Re-running it updates the same block, asks only for what is missing, and changes nothing else.
+Writes the three things every alper skill reads: a pointer block in the repo's agent file carrying the build settings, a glossary of terms the user confirmed, and a written coding standard for the Standards reviewer. It also git-ignores the build worktrees and copies the read-only specs dashboard. Re-running it updates the same block, asks only for what is missing, and changes nothing else.
 
 ## When to Use
 
@@ -25,13 +25,14 @@ Find out:
 
 - which of `CLAUDE.md` and `AGENTS.md` exist at the root, whether either has an `## Agent workflow` section, and which of the five [build settings](../../references/artifacts.md#build-settings) it already holds, and which obsolete settings (`Parallel cap`, `Parallel test suites`) it still holds;
 - whether `.gitignore` ignores `.claude/worktrees/`;
+- whether `docs/.specs/dashboard.html` exists and is identical to the plugin's [dashboard](../../assets/dashboard.html);
 - whether `GLOSSARY.md` or `GLOSSARY-MAP.md` exists;
 - every file that documents coding standards (`docs/CODING_STANDARDS.md`, `CONTRIBUTING.md`, a style guide), and the linter, formatter and type-checker configs;
 - the domain nouns in the code: entity and type names, table names, route segments;
 - the lockfile or manifest, and the install command it implies (`npm ci`, `pnpm install --frozen-lockfile`, `uv sync`, `bundle install`, …), or `none` when the repo installs nothing;
 - the typecheck, filtered-test and full-suite commands, from the manifest's scripts or the CI config, and whether each prints more than its counts and failures (Unity, Gradle and similar runners print their whole log).
 
-Done when: you can say, for each of the three outputs and each build setting, whether it exists, is partial, or is missing, and you have a candidate for each command.
+Done when: you can say, for each of the three outputs, the dashboard and each build setting, whether it exists, is partial, or is missing, and you have a candidate for each command.
 
 ### 2. Ask in one round
 
@@ -44,11 +45,11 @@ Ask only what exploration left open, in the brainstorm format (`❓` question, l
 
 Done when: the user has answered every question.
 
-### 3. Write the glossary, standards, wrappers and ignore rule
+### 3. Write the glossary, standards, wrappers, ignore rule and dashboard
 
-Apply `domain-modeling` to write the confirmed terms into `GLOSSARY.md`. When standards were drafted, write the confirmed rules to `docs/CODING_STANDARDS.md`, one rule per bullet, leaving out what tooling already enforces. Write each wrapper script the user chose, and run it once. When `.claude/worktrees/` is not ignored, append that line to `.gitignore`.
+Apply `domain-modeling` to write the confirmed terms into `GLOSSARY.md`. When standards were drafted, write the confirmed rules to `docs/CODING_STANDARDS.md`, one rule per bullet, leaving out what tooling already enforces. Write each wrapper script the user chose, and run it once. When `.claude/worktrees/` is not ignored, append that line to `.gitignore`. When `docs/.specs/dashboard.html` is missing or differs from the plugin's [dashboard](../../assets/dashboard.html), copy the plugin's file over it unchanged.
 
-Done when: both files hold exactly what the user confirmed, each wrapper ran and printed only counts and failures, and `git check-ignore -q .claude/worktrees/x` succeeds.
+Done when: both files hold exactly what the user confirmed, each wrapper ran and printed only counts and failures, `git check-ignore -q .claude/worktrees/x` succeeds, and `git diff --no-index --quiet <plugin>/assets/dashboard.html docs/.specs/dashboard.html` succeeds.
 
 ### 4. Write the agent-workflow block
 
@@ -77,7 +78,7 @@ Done when: the file has exactly one `## Agent workflow` section holding all five
 
 ### 5. Report
 
-List each file created or changed, and what changed.
+List each file created or changed, and what changed. When the dashboard was copied, tell the user how to open it: `docs/.specs/dashboard.html` in a browser, picking the repo root; Chrome and Edge follow a running build live.
 
 Done when: the report is delivered.
 
@@ -90,6 +91,8 @@ Done when: the report is delivered.
 | "Copy the linter rules into the standards" | Tooling already enforces those. Write only what tooling cannot check. |
 | "Append the block again, it's simpler" | Re-runs must replace the section, so the file holds exactly one. |
 | "Re-ask every setting so the block is fresh" | The user already chose the existing values. Ask only for settings missing from the block. |
+| "The dashboard is already there, skip the copy" | An older copy misreads newer artifacts. Replace it whenever it differs from the plugin's file. |
+| "Tweak the dashboard for this repo while copying it" | The next setup run overwrites it. Copy it unchanged; changes belong in the plugin's `assets/dashboard.html`. |
 | "I'll guess the install command, the user can fix it later" | A wrong command breaks the build worktree. Derive it, then get the user's confirmation. |
 | "The runner's log is fine, a wrapper is extra work" | Every developer reads that log on every run, for the rest of its context. Offer the wrapper. |
 
@@ -101,11 +104,13 @@ Done when: the report is delivered.
 - Changes outside the block in the agent file (step 4)
 - A build setting asked again when the block already held it (step 2)
 - A command written without the user's confirmation (step 2)
+- A `docs/.specs/dashboard.html` that differs from the plugin's copy after the run (step 3)
 
 ## Verification
 
 - [ ] Exactly one `## Agent workflow` section exists, in the one agent file, holding all five build settings and every earlier Gotchas entry.
 - [ ] `.gitignore` ignores `.claude/worktrees/`.
+- [ ] `docs/.specs/dashboard.html` is identical to the plugin's `assets/dashboard.html`.
 - [ ] Every build setting was either already in the block or confirmed by the user, and every command was confirmed.
 - [ ] `GLOSSARY.md` holds only confirmed terms, in the glossary format.
 - [ ] A standards file exists: the repo's own, or `docs/CODING_STANDARDS.md` with confirmed rules.

@@ -17,13 +17,19 @@ After pulling or editing, `/plugin marketplace update alper` refreshes the insta
 
 | Command | What it does |
 |---|---|
-| `/alper:setup-repository` | Once per repo: an agent-workflow block in `CLAUDE.md` or `AGENTS.md` with the build settings (pause, install, typecheck, test and full-suite commands) and the repo's Gotchas, a confirmed `GLOSSARY.md`, coding standards when none exist, `.claude/worktrees/` git-ignored |
+| `/alper:setup-repository` | Once per repo: an agent-workflow block in `CLAUDE.md` or `AGENTS.md` with the build settings (pause, install, typecheck, test and full-suite commands) and the repo's Gotchas, a confirmed `GLOSSARY.md`, coding standards when none exist, `.claude/worktrees/` git-ignored, the [dashboard](#dashboard) at `docs/.specs/dashboard.html` |
 | `/alper:brainstorm [topic]` | Interviews you in rounds of recommended questions until a plan is a confirmed set of decisions |
 | `/alper:spec [feature]` | The architect writes the spec, then the tickets; you approve each |
 | `/alper:build [feature] [mNN] [tNN] [--pause\|--no-pause]` | Milestone by milestone in `.claude/worktrees/<feature>`: one developer per ticket, in order, each committing on the milestone branch; a review gates each milestone before it lands on `feat/<feature>`. `mNN` builds one milestone, `tNN` one ticket |
 | `/alper:commit` | Commits the staged change: an imperative title ("If applied, this commit will …") and at most three bullets |
 | `/alper:review [fixed-point]` | Standards and Spec review of the current branch against a branch, tag or commit (default: the spec's `base`) |
 | `/alper:draw [what] [target]` | The drawer draws a Mermaid diagram, chart or standalone HTML view, render-checks it, and writes it in place |
+
+## Dashboard
+
+`/alper:setup-repository` copies [assets/dashboard.html](assets/dashboard.html) to `docs/.specs/dashboard.html`: one HTML file, no server. Open it in a browser and pick the repo root. It shows every feature's stage, its milestones (landed, in review, building), each ticket's status, blockers and acceptance criteria, the user stories and spec sections a ticket implements, and the saved reviews. During a build it reads the tickets from `.claude/worktrees/<feature>`, and the git refs to tell which milestones landed. It never writes.
+
+Chrome and Edge read the folder live: with **Live** on, the board follows a running build. Other browsers load a snapshot of the folder. Styles and Markdown come from a CDN, so the page needs a network connection.
 
 ## Agents
 
