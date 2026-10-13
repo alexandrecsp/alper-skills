@@ -1,6 +1,6 @@
 ---
 name: write-spec
-description: Synthesizes a confirmed brainstorm into .sdd/specs/<feature>/spec.md without re-interviewing, returning any decision the brainstorm left open. Use when turning settled decisions into a spec.
+description: Synthesizes a confirmed brainstorm or diagnosis into .sdd/specs/<feature>/spec.md without re-interviewing, returning any decision it left open. Use when turning settled decisions into a spec.
 metadata:
   type: process
 ---
@@ -9,24 +9,25 @@ metadata:
 
 ## Overview
 
-Turns decisions the user already made into a spec. It never interviews again: a decision the brainstorm did not settle goes back to the caller as a question, never into the spec as a guess.
+Turns decisions the user already made into a spec. It never interviews again: a decision the **decision record** (`brainstorm.md`, or a bug fix's `diagnose.md`) did not settle goes back to the caller as a question, never into the spec as a guess.
 
 ## When to Use
 
 - **Dispatched by `/alper:spec`** with a `brainstorm.md` path → run the Process.
+- **Dispatched with a `diagnose.md` path** → run the Process; step 4 writes the bug-fix shape.
 - **Asked to write a spec from a discussion already in context** → run the Process with that discussion as the input.
 
 ## Process
 
 ### 1. Read the inputs
 
-Read `.sdd/specs/<feature>/brainstorm.md`, `.sdd/GLOSSARY.md`, the ADRs in `.sdd/docs/adr/`, the coding standards, and every module the decisions touch. Paths and formats: [artifacts](../../references/artifacts.md).
+Read the decision record in `.sdd/specs/<feature>/`, `.sdd/GLOSSARY.md`, the ADRs in `.sdd/docs/adr/`, the coding standards, and every module the decisions touch. Paths and formats: [artifacts](../../references/artifacts.md).
 
 Done when: every module a decision touches has been opened, and you can name the existing pattern each change follows or departs from.
 
 ### 2. Return the gaps
 
-List each decision the spec needs that the brainstorm does not settle: an interface shape, a data rule, a behaviour on failure, a choice between existing patterns. If the list is not empty, return its frontier as one round in the question format of [brainstorm step 2](../brainstorm/SKILL.md#2-ask-the-frontier), shaped so the caller can show it unchanged, and stop:
+List each decision the spec needs that the decision record does not settle: an interface shape, a data rule, a behaviour on failure, a choice between existing patterns. If the list is not empty, return its frontier as one round in the question format of [brainstorm step 2](../brainstorm/SKILL.md#2-ask-the-frontier), shaped so the caller can show it unchanged, and stop:
 
 - Group the questions under `**Domain**` (business rules and their edge cases), then `**Technical**`.
 - Number them Q1 to QN in the order they appear, with no gaps.
@@ -38,7 +39,7 @@ Done when: the list is empty, or the round has been returned numbered Q1 to QN i
 
 Pick the public interfaces the tests will go through. Prefer seams that already exist, and the highest one that observes the behaviour; every new seam is a cost.
 
-Done when: each user-visible behaviour in the brainstorm has a seam that can observe it.
+Done when: each user-visible behaviour in the decision record has a seam that can observe it.
 
 ### 4. Write the spec
 
@@ -55,7 +56,7 @@ Write `.sdd/specs/<feature>/spec.md` with the frontmatter from [artifacts](../..
 
 ## User Stories
 1. As a <actor>, I want <capability>, so that <benefit>
-   <one story per distinct behaviour, covering every branch the brainstorm settled>
+   <one story per distinct behaviour, covering every branch the decision record settled>
 
 ## Milestones
 <the milestones, in the format of the artifacts reference>
@@ -69,7 +70,7 @@ Write `.sdd/specs/<feature>/spec.md` with the frontmatter from [artifacts](../..
 <the seams from step 3, what each catches, and prior-art tests in the codebase>
 
 ## Out of Scope
-<everything the brainstorm put out of scope>
+<everything the decision record put out of scope>
 
 ## Success Criteria
 - [ ] <a checkable outcome>
@@ -77,11 +78,13 @@ Write `.sdd/specs/<feature>/spec.md` with the frontmatter from [artifacts](../..
 
 Group the user stories into **milestones**, each delivering something the user can demo, in the [Milestones section](../../references/artifacts.md#milestones-section) format. Every spec gets the section, even when one milestone covers the whole feature. Order milestones so each one builds only on earlier ones.
 
+**Bug fix** (the decision record is `diagnose.md`): the Problem Statement is the Symptom; the Solution is the chosen fix option; one user story per wrong behaviour, the Symptom's and each blast-radius hit in scope; one milestone; Implementation Decisions name the root cause by module and mechanism; Testing Decisions name the reproducer's seam; Out of Scope is the diagnosis's plus the fix options not chosen; Success Criteria include "the reproducer in `diagnose.md` passes" and "the full suite passes".
+
 Where a picture carries a section better than prose (a flow across modules, a lifecycle, a data model), leave a draw marker there instead of drawing it. The format is in [artifacts](../../references/artifacts.md#draw-marker). `/alper:spec` has the drawer replace it.
 
 Use `.sdd/GLOSSARY.md` terms throughout. A code snippet belongs in the spec only when it is the contract itself (a schema, a type shape, a state machine).
 
-Done when: every brainstorm decision appears in the spec, every user story belongs to exactly one milestone, every pattern applied names the `design-patterns` problem that earns it, and every Success Criterion can be checked by running something or reading one artifact.
+Done when: every decision in the decision record appears in the spec, every user story belongs to exactly one milestone, every pattern applied names the `design-patterns` problem that earns it, and every Success Criterion can be checked by running something or reading one artifact.
 
 ### 5. Settle the language
 
@@ -102,7 +105,7 @@ Done when: every domain term in the spec is in `.sdd/GLOSSARY.md` with the same 
 
 ## Red Flags
 
-- A decision in the spec that cannot be traced to `brainstorm.md` (step 2)
+- A decision in the spec that cannot be traced to the decision record (step 2)
 - A spec written while gap questions were still open (step 2)
 - File paths or code that is not a contract (step 4)
 - A user-visible behaviour with no seam in Testing Decisions (step 3)
@@ -111,7 +114,7 @@ Done when: every domain term in the spec is in `.sdd/GLOSSARY.md` with the same 
 
 ## Verification
 
-- [ ] Every decision in the spec traces to `brainstorm.md` or a returned-and-answered question.
+- [ ] Every decision in the spec traces to the decision record or a returned-and-answered question.
 - [ ] Every section of the template is filled, and `Out of Scope` names at least one thing.
 - [ ] Every user story belongs to exactly one milestone, and each milestone delivers something the user can demo.
 - [ ] Every Success Criterion is checkable.

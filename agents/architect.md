@@ -1,6 +1,6 @@
 ---
 name: architect
-description: Turns a confirmed brainstorm into a spec, and an approved spec into vertical-slice tickets, under .sdd/specs/<feature>/. Dispatched by /alper:spec.
+description: Turns a confirmed brainstorm or diagnosis into a spec, and an approved spec into vertical-slice tickets, under .sdd/specs/<feature>/. Dispatched by /alper:spec.
 model: opus
 tools: Read, Grep, Glob, Write, Edit
 skills:

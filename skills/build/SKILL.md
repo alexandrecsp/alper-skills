@@ -85,7 +85,7 @@ Done when: the developer has handed back, or the build has moved on or stopped.
 
 ### 6. Handle the hand-back
 
-Once a hand-back is green or stuck, and after any reset, commit what it carries on the milestone branch: its `gotchas` lines into the block's Gotchas (at most 10 entries, replacing the least useful one when full), and the user's answers to its questions as a `Build · t<NN> (<date>):` [follow-up decision](../../references/artifacts.md#follow-up-decisions) in `brainstorm.md`. Then, by result:
+Once a hand-back is green or stuck, and after any reset, commit what it carries on the milestone branch: its `gotchas` lines into the block's Gotchas (at most 10 entries, replacing the least useful one when full), and the user's answers to its questions as a `Build · t<NN> (<date>):` [follow-up decision](../../references/artifacts.md#follow-up-decisions) in the [decision record](../../references/artifacts.md#decision-record). Then, by result:
 
 - **`green`** → confirm the tree is clean and `HEAD` carries the ticket's `Ticket:` trailer with the ticket `done`, then back to step 5 (ticket mode: step 10).
 - **`questions`** → put them to the user and resume that developer with the answers.
@@ -151,7 +151,7 @@ Besides the stops in steps 1–7, stop and ask the user before any irreversible 
 | "The fix cycles keep finding things, one more round" | Two fix cycles per milestone, then the user decides. Report what is left. |
 | "The developer is stuck, retry it on Sonnet again" | One retry, on Opus, from a clean tree with the stuck report. Then the ticket is blocked. |
 | "I'll paste the lessons from earlier tickets into this prompt" | Prompts are paid per dispatch and lost after it. Record each lesson once in Gotchas; every developer reads the block. |
-| "The user answered, the developer has it, that's enough" | Later tickets and the Spec reviewer need it too. Record it in `brainstorm.md`. |
+| "The user answered, the developer has it, that's enough" | Later tickets and the Spec reviewer need it too. Record it in the decision record. |
 | "A setting is missing, the default is fine" | The build never runs on a guessed setting. Stop and ask for `/alper:setup-repository`. |
 | "Approval was implied, start the tickets" | Build only from `tickets: approved`. |
 
@@ -175,7 +175,7 @@ Besides the stops in steps 1–7, stop and ask the user before any irreversible 
 - [ ] Nothing was written to the main checkout; every commit was made in `.claude/worktrees/<feature>`.
 - [ ] Every milestone branch was cut from `feat/<feature>` after the previous milestone landed.
 - [ ] Tickets were built one at a time in number order, each by its own developer as one commit with its `Ticket:` trailer and the ticket `done`, or the ticket is `blocked` with a reason.
-- [ ] Every user answer to a developer is a `Build · t<NN>` entry in `brainstorm.md`, and every reported gotcha is in the block's Gotchas.
+- [ ] Every user answer to a developer is a `Build · t<NN>` entry in the decision record, and every reported gotcha is in the block's Gotchas.
 - [ ] Every landed milestone has a Clean report in `reviews/` and a `--no-ff` merge on `feat/<feature>` with its `Milestone:` trailer, after at most 2 fix cycles.
 - [ ] `feat/<feature>` holds only its setup commits (`base`, `issue`) and milestone merges.
 - [ ] The final Spec-only check ran once after the last milestone landed, or was skipped for the implicit milestone.

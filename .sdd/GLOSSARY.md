@@ -4,6 +4,24 @@ A Claude Code plugin that moves a feature from a brainstorm to a spec, tickets a
 
 ## Language
 
+### Deciding
+
+**Decision record**:
+The file a feature's spec is written from: its confirmed brainstorm, or for a bug fix its diagnosis. Follow-up decisions are appended to it.
+_Avoid_: input doc, source doc
+
+**Diagnosis**:
+A bug's confirmed record: its symptom, reproducer, root cause, blast radius and the fix the user chose. It is the decision record of a bug fix.
+_Avoid_: bug report, triage, investigation
+
+**Reproducer**:
+A test that goes red on a bug's symptom and was seen red before any fix.
+_Avoid_: repro script, failing case
+
+**Root cause**:
+The place in the code and the mechanism that produce a bug's symptom, proven when a change there turns the reproducer green.
+_Avoid_: culprit (for the code), source of the bug
+
 ### Building a feature
 
 **Milestone**:

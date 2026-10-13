@@ -430,7 +430,7 @@ function milestoneState(m, featExists) {
   return 'not-started';
 }
 
-function buildFeature({ slug, source, basePath, spec, brainstorm, tickets, reviews, git }) {
+function buildFeature({ slug, source, basePath, spec, brainstorm, diagnosis, tickets, reviews, git }) {
   tickets.sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
   const ms = spec ? spec.milestones.map(m => ({ ...m })) : [];
   if (!ms.length && (tickets.length || spec)) ms.push({ nn: '01', slug, stories: spec ? [...spec.stories.keys()] : [], criteria: '', implicit: true });
@@ -469,7 +469,7 @@ function buildFeature({ slug, source, basePath, spec, brainstorm, tickets, revie
   const real = ms.filter(m => !m.unassigned);
 
   let stage;
-  if (!spec) stage = 'brainstorm';
+  if (!spec) stage = diagnosis !== null ? 'diagnosed' : 'brainstorm';
   else if (spec.fm.status !== 'approved') stage = 'spec draft';
   else if (spec.fm.tickets !== 'approved') stage = spec.fm.tickets === 'draft' ? 'tickets draft' : 'spec approved';
   else if (real.length && real.every(m => m.state === 'landed')) stage = 'landed';
@@ -478,7 +478,7 @@ function buildFeature({ slug, source, basePath, spec, brainstorm, tickets, revie
   else stage = 'ready to build';
 
   const next = ms.flatMap(m => m.tickets).find(t => t.status === 'in-progress') || tickets.find(t => t.ready) || null;
-  return { slug, source, basePath, spec, brainstorm, tickets, byId, milestones: ms, reviews, counts, featExists, worktree: wt || null, stage, storyTickets, storyMilestone, next };
+  return { slug, source, basePath, spec, brainstorm, diagnosis, tickets, byId, milestones: ms, reviews, counts, featExists, worktree: wt || null, stage, storyTickets, storyMilestone, next };
 }
 
 async function loadRepo(src) {
@@ -509,6 +509,7 @@ async function loadRepo(src) {
     }
     const specText = await read(`${basePath}/spec.md`);
     const brainText = await read(`${basePath}/brainstorm.md`);
+    const diagText = await read(`${basePath}/diagnose.md`);
     const tickets = [];
     for (const f of await list(`${basePath}/tickets`)) {
       if (f.dir || !f.name.endsWith('.md')) continue;
@@ -521,11 +522,12 @@ async function loadRepo(src) {
       const t = await read(`${basePath}/reviews/${f.name}`);
       if (t !== null) reviews.push(parseReview(f.name, t));
     }
-    if (specText === null && brainText === null && !tickets.length) continue;
+    if (specText === null && brainText === null && diagText === null && !tickets.length) continue;
     features.push(buildFeature({
       slug, source, basePath, git, tickets, reviews,
       spec: specText !== null ? parseSpec(specText) : null,
       brainstorm: brainText !== null ? parseFrontmatter(brainText).body : null,
+      diagnosis: diagText !== null ? parseFrontmatter(diagText).body : null,
     }));
   }
   return { name: atRoot ? src.name : `${src.name} (specs only)`, atRoot, git, features, sig: hash(seen.join('\u0000')) };
@@ -767,7 +769,7 @@ function featureHeader(f, tab) {
   const tabs = [
     ['tickets', `Tickets <span class="font-mono text-[11px] text-muted ml-1">${c.total}</span>`],
     ['spec', 'Spec'],
-    ['brainstorm', 'Brainstorm'],
+    ['brainstorm', f.brainstorm === null && f.diagnosis !== null ? 'Diagnosis' : 'Brainstorm'],
     ['reviews', `Reviews <span class="font-mono text-[11px] text-muted ml-1">${f.reviews.length}</span>`],
   ];
   const stat = (label, n, st) => `<div class="px-4 py-3 bg-bg first:col-span-2 sm:first:col-span-1"><div class="label flex items-center gap-1.5">${st ? glyph(st) : ''}${label}</div><div class="mt-1 text-xl font-semibold font-mono text-strong">${n}</div></div>`;
@@ -803,7 +805,7 @@ function renderFeature(r) {
   const body = {
     tickets: () => renderTicketsTab(f),
     spec: () => renderDocTab(f.spec ? f.spec.body : null, 'No <code class="font-mono">spec.md</code> yet. Write it with <code class="font-mono">/alper:spec</code>.', f),
-    brainstorm: () => renderDocTab(f.brainstorm, 'No <code class="font-mono">brainstorm.md</code>.'),
+    brainstorm: () => renderDocTab(f.brainstorm ?? f.diagnosis, 'No <code class="font-mono">brainstorm.md</code> or <code class="font-mono">diagnose.md</code>.'),
     reviews: () => renderReviewsTab(f),
   }[r.tab] || (() => empty('Unknown tab.'));
   return `<div class="max-w-6xl mx-auto pb-16">${featureHeader(f, r.tab)}<div class="px-4 sm:px-6 pt-5">${body()}</div></div>`;

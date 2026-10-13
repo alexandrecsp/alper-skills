@@ -48,7 +48,7 @@ Done when: every edge names what the blocked ticket uses from its blocker, the g
 
 ### 5. Write the tickets
 
-Write one file per ticket using the [ticket template](../../references/artifacts.md#ticket-file), `status: todo`, numbered in build order: milestone by milestone, blockers first. Each acceptance criterion is an observable behaviour a test can prove. Fill `milestone` with the milestone's `NN`.
+Write one file per ticket using the [ticket template](../../references/artifacts.md#ticket-file), `status: todo`, numbered in build order: milestone by milestone, blockers first. Each acceptance criterion is an observable behaviour a test can prove. Fill `milestone` with the milestone's `NN`. For a bug fix, the first ticket's first criterion is the reproducer from `diagnose.md` passing, and its Notes point to the diagnosis's Reproduction and Root cause sections.
 
 Done when: every User Story and Success Criterion in the spec is covered by at least one ticket's acceptance criteria, every ticket has `milestone`, and every `blocked-by` id is lower than its ticket's.
 

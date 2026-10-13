@@ -8,6 +8,7 @@ The files, branches and settings every alper skill reads and writes. This file i
 .sdd/
   specs/<feature>/
     brainstorm.md                # the confirmed brainstorm: what and how blocks, then follow-up decisions
+    diagnose.md                  # a bug fix's confirmed diagnosis, in place of brainstorm.md; written by /alper:diagnose
     spec.md                      # the spec
     tickets/NN-<slug>.md         # one file per ticket
     reviews/m<NN>-<slug>.md      # the latest review report of a milestone
@@ -20,10 +21,11 @@ The files, branches and settings every alper skill reads and writes. This file i
   docs/drawings/<slug>.html      # a chart or view from /alper:draw when no path was given
   scripts/<name>                 # test-runner wrappers written by /alper:setup-repository
 .claude/worktrees/<feature>/     # the build worktree /alper:build works in; git-ignored
+.claude/worktrees/diagnose-<slug>/  # the scratch worktree /alper:diagnose reproduces a bug in; removed when it closes
 ```
 
-- Every file alper writes lives under `.sdd/`, except the `## Agent workflow` block in `CLAUDE.md` or `AGENTS.md`, the `.gitignore` line, and the build worktree.
-- `<feature>` is a kebab-case slug the user confirmed. Ticket `NN` is two digits, numbered in dependency order (blockers first). Milestone `NN` is two digits from `01`, in landing order.
+- Every file alper writes lives under `.sdd/`, except the `## Agent workflow` block in `CLAUDE.md` or `AGENTS.md`, the `.gitignore` line, and the worktrees.
+- `<feature>` is a kebab-case slug the user confirmed; a bug fix's is `fix-<slug>`. Ticket `NN` is two digits, numbered in dependency order (blockers first). Milestone `NN` is two digits from `01`, in landing order.
 - The dashboard is the plugin's [`assets/dashboard.html`](../assets/dashboard.html), copied unchanged. It parses the formats in this file, so a format change updates it too.
 - `.sdd` is a hidden directory, which ripgrep skips by default. Open these files by exact path, list them with `ls .sdd/specs/<feature>/tickets`, or pass `--hidden` to ripgrep.
 - **Legacy layout**: repos set up before `.sdd/` hold the same files at `.specs/`, `GLOSSARY.md`, `GLOSSARY-MAP.md`, `docs/adr/`, `docs/CODING_STANDARDS.md`, `docs/drawings/`, and the wrappers the block names under `scripts/`. `/alper:setup-repository` moves them; every other skill reads only `.sdd/`.
@@ -157,9 +159,55 @@ Titles and bodies follow the `commit` skill. Read a trailer with `git log --form
 
 `/alper:build` writes each milestone review's combined report to `reviews/m<NN>-<slug>.md` and commits it on the milestone branch. A later review of the same milestone replaces the file in a new commit, so the file holds the latest verdict and git history holds the earlier ones.
 
+## Decision record
+
+A feature's **decision record** holds every decision its spec is written from: `brainstorm.md`, or `diagnose.md` for a bug fix. A feature has exactly one. Skills read it, and append follow-up decisions to it, by that role, whichever file it is.
+
+## Diagnosis file
+
+`/alper:diagnose` writes `diagnose.md` from the investigator's report and the user's answers:
+
+````markdown
+# Diagnosis: <the wrong behaviour, one line>
+
+## Symptom
+<what the user did, expected and saw, in their words>
+
+## Reproduction
+Reproduced on `<sha>`. <how to trigger it>
+
+```<lang>
+// <path the reproducer belongs at>
+<the reproducer test>
+```
+
+```
+<its red output, trimmed to what shows the symptom>
+```
+
+## Root cause
+<file:line> — <the mechanism>
+- <each piece of evidence, the green flip included>
+- Culprit: <sha> <title> | none: <why>
+
+## Blast radius
+- <file:line> — <shows the symptom or not> | none: <the search run>
+
+## Fix options
+- **A** - <option> — <trade-off>
+- **B** - <option> — <trade-off>
+
+✅ **<letter>** - <chosen by the user; their reason, if given>
+
+## Out of Scope
+- <each blast-radius hit the fix leaves alone, and anything else the user excluded> | none
+````
+
+`## Follow-up decisions` is added below it the first time one is recorded.
+
 ## Follow-up decisions
 
-Decisions the user makes after the brainstorm was confirmed are appended to `brainstorm.md` under `## Follow-up decisions`, one entry per occasion, each listing every question and its answer:
+Decisions the user makes after the decision record was confirmed are appended to it under `## Follow-up decisions`, one entry per occasion, each listing every question and its answer:
 
 - `Spec · round <n> (<date>):` for gap questions the architect returned during `/alper:spec`;
 - `Build · t<NN> (<date>):` for questions a developer returned during `/alper:build`, committed on the milestone branch.

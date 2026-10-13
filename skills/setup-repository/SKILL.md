@@ -71,7 +71,7 @@ Edit the agent file that exists (`CLAUDE.md` first, then `AGENTS.md`); create on
 ```markdown
 ## Agent workflow
 
-This repo uses the alper plugin: `/alper:brainstorm` → `/alper:spec` → `/alper:build`, and `/alper:review` for any branch.
+This repo uses the alper plugin: `/alper:brainstorm` → `/alper:spec` → `/alper:build`, `/alper:diagnose` in place of the brainstorm for a bug, and `/alper:review` for any branch.
 
 - Alper files: `.sdd/`. The directory is hidden from ripgrep's default search; open files by path.
 - Specs and tickets: `.sdd/specs/<feature>/`.

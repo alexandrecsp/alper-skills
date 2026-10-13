@@ -1,7 +1,7 @@
 ---
 name: spec
 argument-hint: "[feature]"
-description: Turn a confirmed brainstorm into an approved spec and approved tickets, via the architect, with an approval stop after each.
+description: Turn a confirmed brainstorm or diagnosis into an approved spec and approved tickets, via the architect, with an approval stop after each.
 disable-model-invocation: true
 metadata:
   type: process
@@ -11,13 +11,13 @@ metadata:
 
 ## Overview
 
-Moves a confirmed brainstorm to an approved spec and approved tickets. The `alper:architect` writes both from files, never from this conversation, so everything it needs goes to disk first; every decision it cannot make comes back to the user.
+Moves a feature's confirmed **decision record** (`brainstorm.md`, or a bug fix's `diagnose.md`) to an approved spec and approved tickets. The `alper:architect` writes both from files, never from this conversation, so everything it needs goes to disk first; every decision it cannot make comes back to the user.
 
 ## When to Use
 
 - **A brainstorm was just confirmed in this conversation** → run the Process from step 1.
-- **`.sdd/specs/<feature>/brainstorm.md` already exists** → run the Process from step 2.
-- **No brainstorm exists** → invoke `brainstorm` first, then run the Process.
+- **`.sdd/specs/<feature>/brainstorm.md` or `diagnose.md` already exists** → run the Process from step 2.
+- **No decision record exists** → invoke `brainstorm` first, then run the Process; for a bug, offer `/alper:diagnose` instead.
 - **The spec is approved but tickets are not** → run the Process from step 5.
 
 ## Process
@@ -30,9 +30,9 @@ Done when: `brainstorm.md` exists and matches the what and how blocks the user s
 
 ### 2. Get the spec written
 
-Dispatch `alper:architect`: "Apply `write-spec` for `<feature>`, from `.sdd/specs/<feature>/brainstorm.md`."
+Dispatch `alper:architect`: "Apply `write-spec` for `<feature>`, from `.sdd/specs/<feature>/<decision record>`."
 
-- **It returns questions** → show them to the user verbatim under `**Spec · round <n>**`, keeping its numbering and `Next round` lines, then append the answers to `brainstorm.md` under `## Follow-up decisions`, and dispatch again.
+- **It returns questions** → show them to the user verbatim under `**Spec · round <n>**`, keeping its numbering and `Next round` lines, then append the answers to the decision record under `## Follow-up decisions`, and dispatch again.
 - **It returns the spec path** → continue.
 
 Done when: `spec.md` exists with `status: draft`.
@@ -77,14 +77,14 @@ Done when: the turn ends with no build started.
 
 | Rationalization | Reality |
 |---|---|
-| "The architect can read the conversation" | A dispatched agent starts with a fresh context. Everything it needs goes in `brainstorm.md`. |
+| "The architect can read the conversation" | A dispatched agent starts with a fresh context. Everything it needs goes in the decision record. |
 | "The architect's recommendation is fine, I'll accept it" | The decisions are the user's. Put every returned question to the user. |
 | "The user said 'looks good', that's approval" | Ask for an explicit yes before flipping any status. |
 | "Tickets are approved, I'll start the build" | The build is the user's call. Hand back and end the turn. |
 
 ## Red Flags
 
-- The architect dispatched before `brainstorm.md` exists (step 1)
+- The architect dispatched before the decision record exists (step 1)
 - A returned question answered without the user (steps 2 and 3)
 - The spec shown for approval with a draw marker the user did not choose to keep (step 3)
 - `status` or `tickets` set to `approved` without an explicit yes (steps 4 and 6)
@@ -92,7 +92,7 @@ Done when: the turn ends with no build started.
 
 ## Verification
 
-- [ ] `brainstorm.md` matches the confirmed what and how blocks, plus any follow-up decisions.
+- [ ] The decision record matches what the user confirmed (the what and how blocks, or the diagnosis), plus any follow-up decisions.
 - [ ] Every question the architect or drawer returned was answered by the user.
 - [ ] No draw marker remains in `spec.md` unless the user chose to keep it.
 - [ ] `status: approved` and `tickets: approved` were each set after an explicit yes.

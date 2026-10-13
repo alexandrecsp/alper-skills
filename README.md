@@ -1,6 +1,6 @@
 # alper
 
-A Claude Code plugin for spec-driven development: `brainstorm → spec → build`, with each feature built ticket by ticket in its own worktree and one two-axis review per milestone.
+A Claude Code plugin for spec-driven development: `brainstorm → spec → build` (or `diagnose → spec → build` for a bug), with each feature built ticket by ticket in its own worktree and one two-axis review per milestone.
 
 ## Install
 
@@ -19,7 +19,8 @@ After pulling or editing, `/plugin marketplace update alper` refreshes the insta
 |---|---|
 | `/alper:setup-repository` | Once per repo: an agent-workflow block in `CLAUDE.md` or `AGENTS.md` with the build settings (pause, install, typecheck, test and full-suite commands), the commit title prefix regex and the repo's Gotchas, and, under `.sdd/`, a confirmed glossary, coding standards when none exist and the [dashboard](#dashboard); `.claude/worktrees/` git-ignored. Moves a pre-`.sdd/` layout into `.sdd/` |
 | `/alper:brainstorm [topic]` | Interviews you in rounds of recommended questions until a plan is a confirmed set of decisions |
-| `/alper:spec [feature]` | The architect writes the spec, then the tickets; you approve each |
+| `/alper:diagnose [symptom]` | The investigator reproduces a bug in a scratch worktree and proves its root cause; you confirm it and choose the fix, and it writes `.sdd/specs/fix-<slug>/diagnose.md` for `/alper:spec`. Fixes nothing |
+| `/alper:spec [feature]` | The architect writes the spec, then the tickets, from the brainstorm or the diagnosis; you approve each |
 | `/alper:build [feature] [mNN] [tNN] [--pause\|--no-pause]` | Milestone by milestone in `.claude/worktrees/<feature>`: one developer per ticket, in order, each committing on the milestone branch; a review gates each milestone before it lands on `feat/<feature>`. `mNN` builds one milestone, `tNN` one ticket |
 | `/alper:commit` | Commits the staged change: an imperative title ("If applied, this commit will …"), starting with the issue key the repo's prefix regex requires, and at most three bullets |
 | `/alper:review [fixed-point]` | Standards and Spec review of the current branch against a branch, tag or commit (default: the spec's `base`) |
@@ -27,7 +28,7 @@ After pulling or editing, `/plugin marketplace update alper` refreshes the insta
 
 ## Dashboard
 
-`/alper:setup-repository` copies [assets/dashboard.html](assets/dashboard.html) to `.sdd/dashboard.html`: one HTML file, no server. Open it in a browser and pick the repo root once; each repo's copy remembers its own folder, so a later visit reopens it on the first click, or with no click when Chrome or Edge was told to allow it on every visit. It shows every feature's stage, its milestones (landed, in review, building), each ticket's status, blockers and acceptance criteria as a list, a kanban board (ready, waiting, in progress, blocked, done, one swimlane per milestone) or a dependency graph, the user stories and spec sections a ticket implements, and the saved reviews. During a build it reads the tickets from `.claude/worktrees/<feature>`, and the git refs to tell which milestones landed. It never writes.
+`/alper:setup-repository` copies [assets/dashboard.html](assets/dashboard.html) to `.sdd/dashboard.html`: one HTML file, no server. Open it in a browser and pick the repo root once; each repo's copy remembers its own folder, so a later visit reopens it on the first click, or with no click when Chrome or Edge was told to allow it on every visit. It shows every feature's stage (a bug fix starts as `diagnosed`), its milestones (landed, in review, building), each ticket's status, blockers and acceptance criteria as a list, a kanban board (ready, waiting, in progress, blocked, done, one swimlane per milestone) or a dependency graph, the user stories and spec sections a ticket implements, and the saved reviews. During a build it reads the tickets from `.claude/worktrees/<feature>`, and the git refs to tell which milestones landed. It never writes.
 
 Chrome and Edge read the folder live: with **Live** on, the board follows a running build. Other browsers load a snapshot of the folder. Styles and Markdown come from a CDN, so the page needs a network connection.
 
@@ -39,6 +40,7 @@ Chrome and Edge read the folder live: with **Live** on, the board follows a runn
 | `developer` | sonnet | one ticket, test-first, one commit in the build worktree | `implement-ticket`, `tdd` |
 | `code-reviewer` | opus | one review axis per run | `review-standards`, `review-spec` |
 | `drawer` | opus | one render-checked diagram, chart or view, written in place | `draw-visual` |
+| `investigator` | opus | one bug reproduced and its root cause proven, in a scratch worktree, never fixed | `diagnose-bug` |
 
 Every agent declares a `tools` allowlist, so it never pays for the session's MCP tools, and loads a skill it needs at one step (`commit`, `design-patterns`) with `Skill` at that step.
 
