@@ -27,7 +27,7 @@ Formats, branch names, trailers and settings: [artifacts](../../references/artif
 
 ### 1. Check the preconditions
 
-Use the `[feature]` argument; without one, find the feature under `.specs/` (ask when there are several). Check, writing nothing:
+Use the `[feature]` argument; without one, find the feature under `.sdd/specs/` (ask when there are several). Check, writing nothing:
 
 - `spec.md` has `status: approved` and `tickets: approved`, and the main checkout is clean (`git status --porcelain` empty).
 - The `## Agent workflow` block holds all five [build settings](../../references/artifacts.md#build-settings), and `git check-ignore -q .claude/worktrees/<feature>` succeeds. Either missing → stop and ask the user to re-run `/alper:setup-repository`.
@@ -50,7 +50,7 @@ Done when: the target is known, or you have reported and stopped with nothing ch
 
 ### 3. Enter the build worktree
 
-- **`feat/<feature>` does not exist** → ask the user which branch to build from and, when the block sets a [`Commit title prefix`](../../references/artifacts.md#commit-settings), the feature's issue key; ask both in one round. For the branch, name each: the default branch (`git symbolic-ref --short refs/remotes/origin/HEAD`, else `main` or `master`), the current branch when it differs, or another they name. Recommend the default branch when it holds the approved spec and tickets, else the current branch. A branch holds them when `git diff --quiet <branch> HEAD -- .specs/<feature>` succeeds; a chosen branch that does not → tell the user the spec and tickets must reach it first, and stop. Then `git worktree add -b feat/<feature> .claude/worktrees/<feature> <base>`, enter it with `EnterWorktree` (`path`), run the `Install command` (unless `none`), then the full suite. Red → `ExitWorktree` (`keep`), remove the worktree and the branch, and stop with the failures. Green → record `<base>` and the issue key in the spec frontmatter and commit them on `feat/<feature>`.
+- **`feat/<feature>` does not exist** → ask the user which branch to build from and, when the block sets a [`Commit title prefix`](../../references/artifacts.md#commit-settings), the feature's issue key; ask both in one round. For the branch, name each: the default branch (`git symbolic-ref --short refs/remotes/origin/HEAD`, else `main` or `master`), the current branch when it differs, or another they name. Recommend the default branch when it holds the approved spec and tickets, else the current branch. A branch holds them when `git diff --quiet <branch> HEAD -- .sdd/specs/<feature>` succeeds; a chosen branch that does not → tell the user the spec and tickets must reach it first, and stop. Then `git worktree add -b feat/<feature> .claude/worktrees/<feature> <base>`, enter it with `EnterWorktree` (`path`), run the `Install command` (unless `none`), then the full suite. Red → `ExitWorktree` (`keep`), remove the worktree and the branch, and stop with the failures. Green → record `<base>` and the issue key in the spec frontmatter and commit them on `feat/<feature>`.
 - **It exists, the worktree does not** → `git worktree add .claude/worktrees/<feature> feat/<feature>`, enter it, and run the `Install command`.
 - **Both exist** → enter the worktree.
 

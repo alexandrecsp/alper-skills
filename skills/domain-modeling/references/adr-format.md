@@ -2,7 +2,7 @@
 
 Back to [the skill](../SKILL.md).
 
-ADRs live in `docs/adr/`, numbered `0001-<slug>.md`, `0002-<slug>.md`: scan for the highest number and add one. Create the directory with the first ADR.
+ADRs live in `.sdd/docs/adr/`, numbered `0001-<slug>.md`, `0002-<slug>.md`: scan for the highest number and add one. Create the directory with the first ADR.
 
 ```markdown
 # <Short title of the decision>

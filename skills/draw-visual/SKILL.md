@@ -22,13 +22,13 @@ Turns a source into one picture that renders and draws nothing the source does n
 
 ### 1. Pin the request
 
-Name three things: the **kind** (diagram, chart or view), the **source** (files, a spec section, data), and the **target** (a markdown file and the marker or location in it, or an output path). A chart or view with no path goes to `docs/drawings/<slug>.html`. Return anything still open to the caller as a numbered question with your recommendation, and stop.
+Name three things: the **kind** (diagram, chart or view), the **source** (files, a spec section, data), and the **target** (a markdown file and the marker or location in it, or an output path). A chart or view with no path goes to `.sdd/docs/drawings/<slug>.html`. Return anything still open to the caller as a numbered question with your recommendation, and stop.
 
 Done when: kind, source and target are each named.
 
 ### 2. Trace the source
 
-Read the source and list every element the drawing will hold (each node, edge, state, entity or data point) with where it comes from: a `file:line`, a spec heading, a data row. Take names verbatim from the code and `GLOSSARY.md`. An element you cannot trace stays out of the drawing.
+Read the source and list every element the drawing will hold (each node, edge, state, entity or data point) with where it comes from: a `file:line`, a spec heading, a data row. Take names verbatim from the code and `.sdd/GLOSSARY.md`. An element you cannot trace stays out of the drawing.
 
 Done when: every listed element has a source, and nothing on the list was inferred.
 

@@ -21,9 +21,9 @@ Writes the domain language down the moment a term is settled, and records a deci
 
 ### 1. Find the glossary
 
-`GLOSSARY-MAP.md` at the root means several contexts: read it and pick the context the term belongs to. Otherwise use the root `GLOSSARY.md`, created when the first term is settled. Format: [glossary-format](references/glossary-format.md).
+`.sdd/GLOSSARY-MAP.md` means several contexts: read it and pick the context the term belongs to. Otherwise use `.sdd/GLOSSARY.md`, created when the first term is settled. Format: [glossary-format](references/glossary-format.md).
 
-Done when: you know which `GLOSSARY.md` the term belongs in.
+Done when: you know which glossary file the term belongs in.
 
 ### 2. Challenge the term
 
@@ -47,7 +47,7 @@ Done when: the entry is in the glossary in the format, and nothing you wrote use
 2. **Surprising without context**: a future reader would ask "why on earth?".
 3. **A real trade-off**: there were genuine alternatives.
 
-If all three hold, write the ADR in `docs/adr/` using [adr-format](references/adr-format.md). If any is missing, skip it.
+If all three hold, write the ADR in `.sdd/docs/adr/` using [adr-format](references/adr-format.md). If any is missing, skip it.
 
 Done when: every decision that meets all three has an ADR, and no other decision has one.
 
@@ -68,7 +68,7 @@ Done when: every decision that meets all three has an ADR, and no other decision
 
 ## Verification
 
-- [ ] Every settled term is in the right `GLOSSARY.md`, in the format, with `_Avoid_` synonyms listed.
+- [ ] Every settled term is in the right glossary file, in the format, with `_Avoid_` synonyms listed.
 - [ ] No glossary entry contains implementation detail.
 - [ ] Every conflict with the glossary or the code was put to the user or returned to the caller.
 - [ ] Every ADR written meets all three conditions.

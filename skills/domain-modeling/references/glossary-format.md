@@ -25,15 +25,15 @@ _Avoid_: bill, payment request
 
 ## Several contexts
 
-A large repo with independent areas keeps one `GLOSSARY.md` per context and a root `GLOSSARY-MAP.md`:
+A large repo with independent areas keeps one glossary per context in `.sdd/glossaries/<context>.md`, and `.sdd/GLOSSARY-MAP.md` in place of `.sdd/GLOSSARY.md`:
 
 ```markdown
 # Glossary Map
 
 ## Contexts
 
-- [Ordering](./src/ordering/GLOSSARY.md): receives and tracks customer orders
-- [Billing](./src/billing/GLOSSARY.md): generates invoices and takes payments
+- [Ordering](glossaries/ordering.md): receives and tracks customer orders
+- [Billing](glossaries/billing.md): generates invoices and takes payments
 
 ## Relationships
 

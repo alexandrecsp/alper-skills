@@ -1,6 +1,6 @@
 ---
 name: write-spec
-description: Synthesizes a confirmed brainstorm into .specs/<feature>/spec.md without re-interviewing, returning any decision the brainstorm left open. Use when turning settled decisions into a spec.
+description: Synthesizes a confirmed brainstorm into .sdd/specs/<feature>/spec.md without re-interviewing, returning any decision the brainstorm left open. Use when turning settled decisions into a spec.
 metadata:
   type: process
 ---
@@ -20,7 +20,7 @@ Turns decisions the user already made into a spec. It never interviews again: a 
 
 ### 1. Read the inputs
 
-Read `.specs/<feature>/brainstorm.md`, `GLOSSARY.md`, the ADRs in `docs/adr/`, the coding standards, and every module the decisions touch. Paths and formats: [artifacts](../../references/artifacts.md).
+Read `.sdd/specs/<feature>/brainstorm.md`, `.sdd/GLOSSARY.md`, the ADRs in `.sdd/docs/adr/`, the coding standards, and every module the decisions touch. Paths and formats: [artifacts](../../references/artifacts.md).
 
 Done when: every module a decision touches has been opened, and you can name the existing pattern each change follows or departs from.
 
@@ -42,7 +42,7 @@ Done when: each user-visible behaviour in the brainstorm has a seam that can obs
 
 ### 4. Write the spec
 
-Write `.specs/<feature>/spec.md` with the frontmatter from [artifacts](../../references/artifacts.md) (`status: draft`, `tickets: none`) and this body:
+Write `.sdd/specs/<feature>/spec.md` with the frontmatter from [artifacts](../../references/artifacts.md) (`status: draft`, `tickets: none`) and this body:
 
 ```markdown
 # Spec: <feature title>
@@ -79,7 +79,7 @@ Group the user stories into **milestones**, each delivering something the user c
 
 Where a picture carries a section better than prose (a flow across modules, a lifecycle, a data model), leave a draw marker there instead of drawing it. The format is in [artifacts](../../references/artifacts.md#draw-marker). `/alper:spec` has the drawer replace it.
 
-Use `GLOSSARY.md` terms throughout. A code snippet belongs in the spec only when it is the contract itself (a schema, a type shape, a state machine).
+Use `.sdd/GLOSSARY.md` terms throughout. A code snippet belongs in the spec only when it is the contract itself (a schema, a type shape, a state machine).
 
 Done when: every brainstorm decision appears in the spec, every user story belongs to exactly one milestone, every pattern applied names the `design-patterns` problem that earns it, and every Success Criterion can be checked by running something or reading one artifact.
 
@@ -87,7 +87,7 @@ Done when: every brainstorm decision appears in the spec, every user story belon
 
 For each domain term the spec introduces or sharpens, apply `domain-modeling`.
 
-Done when: every domain term in the spec is in `GLOSSARY.md` with the same meaning.
+Done when: every domain term in the spec is in `.sdd/GLOSSARY.md` with the same meaning.
 
 ## Common Rationalizations
 
@@ -107,7 +107,7 @@ Done when: every domain term in the spec is in `GLOSSARY.md` with the same meani
 - File paths or code that is not a contract (step 4)
 - A user-visible behaviour with no seam in Testing Decisions (step 3)
 - A spec with no `## Milestones` section, or a user story in no milestone or in two (step 4)
-- A domain word used differently from `GLOSSARY.md` (step 5)
+- A domain word used differently from `.sdd/GLOSSARY.md` (step 5)
 
 ## Verification
 
@@ -116,4 +116,4 @@ Done when: every domain term in the spec is in `GLOSSARY.md` with the same meani
 - [ ] Every user story belongs to exactly one milestone, and each milestone delivers something the user can demo.
 - [ ] Every Success Criterion is checkable.
 - [ ] Every user-visible behaviour has a test seam.
-- [ ] Every domain term matches `GLOSSARY.md`.
+- [ ] Every domain term matches `.sdd/GLOSSARY.md`.

@@ -25,13 +25,13 @@ Specialised agents (architect, developer, merger, code-reviewer) are thin person
 3. As a developer, I want setup to ask me which file to create when neither exists, so that it never creates a second agent file beside one I already have.
 4. As a developer, I want re-running setup to update its block in place, so that upgrades never duplicate it or touch my own sections.
 5. As a developer, I want setup to propose `GLOSSARY.md` terms it found in the code and write only the ones I confirm, so that the glossary starts accurate.
-6. As a developer, I want setup to draft `docs/CODING_STANDARDS.md` from the repo's linters and visible conventions when no standards document exists, so that the Standards reviewer has something written to check against.
+6. As a developer, I want setup to draft `.sdd/docs/CODING_STANDARDS.md` from the repo's linters and visible conventions when no standards document exists, so that the Standards reviewer has something written to check against.
 7. As a developer, I want `/alper:brainstorm` to ask in rounds of numbered questions with a recommended answer each, so that I can answer a whole round by number.
 8. As a developer, I want brainstorm to look up facts itself and ask me only for decisions, so that my answers are spent on what only I know.
 9. As a developer, I want brainstorm to end on a restate I explicitly confirm, including what is out of scope, so that nothing is silently assumed.
 10. As a developer, I want `/alper:spec` to turn a confirmed brainstorm into a spec without interviewing me again, so that decisions I already made are not reopened.
 11. As a developer, I want the architect to hand back any decision the brainstorm missed instead of guessing it, so that the spec contains only my decisions.
-12. As a developer, I want the spec written to `.specs/<feature>/spec.md` using a fixed template with success criteria, so that every spec reads the same and the Spec reviewer can check against it.
+12. As a developer, I want the spec written to `.sdd/specs/<feature>/spec.md` using a fixed template with success criteria, so that every spec reads the same and the Spec reviewer can check against it.
 13. As a developer, I want to approve the spec before any tickets exist, so that slicing never starts from a spec I would have changed.
 14. As a developer, I want the architect to cut the spec into tracer-bullet vertical slices, so that tickets with no shared blockers can run in parallel.
 15. As a developer, I want wide refactors sequenced as expand–contract instead of forced into a vertical slice, so that every ticket can still land green.
@@ -101,11 +101,11 @@ Paths below are contracts the skills depend on (artifact locations, plugin layou
 
 ### Artifacts
 
-- `.specs/<feature>/brainstorm.md`: the confirmed brainstorm restate. `/alper:spec` saves it there (after I confirm the feature slug) when it is still only in the conversation, because the architect starts with a fresh context and reads files, not the chat.
-- `.specs/<feature>/spec.md`: Problem Statement, Solution, User Stories, Implementation Decisions, Testing Decisions (with seams), Out of Scope, Success Criteria.
-- `.specs/<feature>/tickets/NN-<slug>.md`: frontmatter `id`, `title`, `status` (`todo | in-progress | done | blocked`), `blocked-by` (list of ids), `branch`; body: What it delivers, Acceptance criteria (checkboxes), Test seams, Notes.
-- `.specs` is hidden from ripgrep's default search, so every skill names these paths explicitly instead of searching for them.
-- `GLOSSARY.md` at the repo root (no implementation details), ADRs in `docs/adr/` created lazily, `docs/CODING_STANDARDS.md` only when the repo documents no standards.
+- `.sdd/specs/<feature>/brainstorm.md`: the confirmed brainstorm restate. `/alper:spec` saves it there (after I confirm the feature slug) when it is still only in the conversation, because the architect starts with a fresh context and reads files, not the chat.
+- `.sdd/specs/<feature>/spec.md`: Problem Statement, Solution, User Stories, Implementation Decisions, Testing Decisions (with seams), Out of Scope, Success Criteria.
+- `.sdd/specs/<feature>/tickets/NN-<slug>.md`: frontmatter `id`, `title`, `status` (`todo | in-progress | done | blocked`), `blocked-by` (list of ids), `branch`; body: What it delivers, Acceptance criteria (checkboxes), Test seams, Notes.
+- `.sdd` is hidden from ripgrep's default search, so every skill names these paths explicitly instead of searching for them.
+- `.sdd/GLOSSARY.md` (no implementation details), ADRs in `.sdd/docs/adr/` created lazily, `.sdd/docs/CODING_STANDARDS.md` only when the repo documents no standards.
 
 ### `/alper:spec` flow
 

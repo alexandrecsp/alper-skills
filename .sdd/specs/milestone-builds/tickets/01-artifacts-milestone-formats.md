@@ -14,7 +14,7 @@ The Artifacts reference becomes the single source of truth for every new format 
 
 ## Acceptance criteria
 
-- [ ] The Layout lists `.specs/<feature>/reviews/m<NN>-<slug>.md` as the latest review report of a milestone.
+- [ ] The Layout lists `.sdd/specs/<feature>/reviews/m<NN>-<slug>.md` as the latest review report of a milestone.
 - [ ] A Spec section defines the `## Milestones` contract (`### M<NN> <slug>`, `- User stories:`, `- Success criteria:`), placed between User Stories and Implementation Decisions, with `NN` two digits from 01 in landing order, every user story in exactly one milestone, and a Success Criterion under no milestone checked only by the Final Spec-only check.
 - [ ] The ticket template's frontmatter carries `milestone: "NN"` and `touches: [...]` (module names as the spec names them), and the reference states that two tickets touch the same module when their `touches` lists share an entry.
 - [ ] The Ticket status table says `in-progress` is set only on a dispatched ticket, and `blocked` is set by the merger (a merge it cannot get green) or by `/alper:build` (a ticket still Stuck after its Opus retry).

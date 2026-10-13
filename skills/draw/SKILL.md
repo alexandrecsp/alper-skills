@@ -25,7 +25,7 @@ Gets one drawing made by the `alper:drawer`. The drawer starts with a fresh cont
 Take what to draw from the first argument and the target from the second, filling the gaps from the conversation:
 
 - **Source**: the files, spec section or data to draw from. Write data that lives only in the conversation to a file in a temporary directory, and pass its path.
-- **Target**: a markdown file and the location in it for a diagram, or an output path for a chart or view (default `docs/drawings/<slug>.html`, per [artifacts](../../references/artifacts.md)).
+- **Target**: a markdown file and the location in it for a diagram, or an output path for a chart or view (default `.sdd/docs/drawings/<slug>.html`, per [artifacts](../../references/artifacts.md)).
 
 Ask the user for anything still open.
 

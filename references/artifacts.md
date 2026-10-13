@@ -5,22 +5,28 @@ The files, branches and settings every alper skill reads and writes. This file i
 ## Layout
 
 ```
-.specs/<feature>/
-  brainstorm.md                  # the confirmed brainstorm: what and how blocks, then follow-up decisions
-  spec.md                        # the spec
-  tickets/NN-<slug>.md           # one file per ticket
-  reviews/m<NN>-<slug>.md        # the latest review report of a milestone
-.specs/dashboard.html            # read-only dashboard over every feature; copied by /alper:setup-repository
-GLOSSARY.md                      # domain language, no implementation details
-docs/adr/NNNN-<slug>.md          # decisions, created lazily
-docs/CODING_STANDARDS.md         # only when the repo documents no standards elsewhere
-docs/drawings/<slug>.html        # a chart or view from /alper:draw when no path was given
+.sdd/
+  specs/<feature>/
+    brainstorm.md                # the confirmed brainstorm: what and how blocks, then follow-up decisions
+    spec.md                      # the spec
+    tickets/NN-<slug>.md         # one file per ticket
+    reviews/m<NN>-<slug>.md      # the latest review report of a milestone
+  dashboard.html                 # read-only dashboard over every feature; copied by /alper:setup-repository
+  GLOSSARY.md                    # domain language, no implementation details
+  GLOSSARY-MAP.md                # replaces GLOSSARY.md when the repo has several contexts
+  glossaries/<context>.md        # one glossary per context named in GLOSSARY-MAP.md
+  docs/adr/NNNN-<slug>.md        # decisions, created lazily
+  docs/CODING_STANDARDS.md       # only when the repo documents no standards elsewhere
+  docs/drawings/<slug>.html      # a chart or view from /alper:draw when no path was given
+  scripts/<name>                 # test-runner wrappers written by /alper:setup-repository
 .claude/worktrees/<feature>/     # the build worktree /alper:build works in; git-ignored
 ```
 
+- Every file alper writes lives under `.sdd/`, except the `## Agent workflow` block in `CLAUDE.md` or `AGENTS.md`, the `.gitignore` line, and the build worktree.
 - `<feature>` is a kebab-case slug the user confirmed. Ticket `NN` is two digits, numbered in dependency order (blockers first). Milestone `NN` is two digits from `01`, in landing order.
 - The dashboard is the plugin's [`assets/dashboard.html`](../assets/dashboard.html), copied unchanged. It parses the formats in this file, so a format change updates it too.
-- `.specs` is a hidden directory, which ripgrep skips by default. Open these files by exact path, list them with `ls .specs/<feature>/tickets`, or pass `--hidden` to ripgrep.
+- `.sdd` is a hidden directory, which ripgrep skips by default. Open these files by exact path, list them with `ls .sdd/specs/<feature>/tickets`, or pass `--hidden` to ripgrep.
+- **Legacy layout**: repos set up before `.sdd/` hold the same files at `.specs/`, `GLOSSARY.md`, `GLOSSARY-MAP.md`, `docs/adr/`, `docs/CODING_STANDARDS.md`, `docs/drawings/`, and the wrappers the block names under `scripts/`. `/alper:setup-repository` moves them; every other skill reads only `.sdd/`.
 
 ## Build settings
 
@@ -44,7 +50,7 @@ Five bullets and a Gotchas list in the repo's `## Agent workflow` block, written
 | `Test command` | the command that runs only the tests named in place of `<tests>` | derived from the manifest or CI config |
 | `Full suite command` | the command that runs every test | derived from the manifest or CI config |
 
-- Each test command prints the pass and fail counts and the failures, and little else. A runner that prints its whole log gets a wrapper script that does, and the setting names the wrapper.
+- Each test command prints the pass and fail counts and the failures, and little else. A runner that prints its whole log gets a wrapper script under `.sdd/scripts/` that does, and the setting names the wrapper.
 - **Gotchas** are optional: at most 10 one-line traps of this repo (a tool that breaks in worktrees, a name clash, files never to commit). `/alper:build` adds one when a hand-back reports it, replacing the least useful entry when the list is full. Agents read them from the block; dispatch prompts never repeat them.
 
 ## Commit settings

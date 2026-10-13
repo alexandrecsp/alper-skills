@@ -125,7 +125,7 @@ Done when: the user has said yes to both blocks as sent.
 
 ### 7. Hand back
 
-Deliver the confirmed summary and offer the next steps: save it to a file (suggest `docs/brainstorm/<topic>.md`; write it only at a path the user confirms), or carry it into a spec or plan. Then end the turn. When another skill called this one, return the summary to it instead.
+Deliver the confirmed summary and offer the next steps: save it to a file (suggest `.sdd/docs/brainstorm/<topic>.md`; write it only at a path the user confirms), or carry it into a spec or plan. Then end the turn. When another skill called this one, return the summary to it instead.
 
 Done when: the offer is made and the turn ends with nothing built or written beyond what the user approved.
 

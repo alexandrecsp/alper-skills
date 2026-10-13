@@ -38,7 +38,7 @@ Done when: the new test and its neighbours pass.
 
 ### 4. Tidy
 
-With everything green, remove duplication you just introduced and make names match `GLOSSARY.md`. Run the tests again.
+With everything green, remove duplication you just introduced and make names match `.sdd/GLOSSARY.md`. Run the tests again.
 
 Done when: the tests are still green and the new code reads as the project's own.
 

@@ -16,7 +16,7 @@ Moves a confirmed brainstorm to an approved spec and approved tickets. The `alpe
 ## When to Use
 
 - **A brainstorm was just confirmed in this conversation** → run the Process from step 1.
-- **`.specs/<feature>/brainstorm.md` already exists** → run the Process from step 2.
+- **`.sdd/specs/<feature>/brainstorm.md` already exists** → run the Process from step 2.
 - **No brainstorm exists** → invoke `brainstorm` first, then run the Process.
 - **The spec is approved but tickets are not** → run the Process from step 5.
 
@@ -24,13 +24,13 @@ Moves a confirmed brainstorm to an approved spec and approved tickets. The `alpe
 
 ### 1. Put the brainstorm on disk
 
-Use the `[feature]` argument as the kebab-case `<feature>` slug; without one, propose a slug and confirm it with the user. Write the confirmed what and how blocks to `.specs/<feature>/brainstorm.md`, unchanged. Paths: [artifacts](../../references/artifacts.md).
+Use the `[feature]` argument as the kebab-case `<feature>` slug; without one, propose a slug and confirm it with the user. Write the confirmed what and how blocks to `.sdd/specs/<feature>/brainstorm.md`, unchanged. Paths: [artifacts](../../references/artifacts.md).
 
 Done when: `brainstorm.md` exists and matches the what and how blocks the user said yes to.
 
 ### 2. Get the spec written
 
-Dispatch `alper:architect`: "Apply `write-spec` for `<feature>`, from `.specs/<feature>/brainstorm.md`."
+Dispatch `alper:architect`: "Apply `write-spec` for `<feature>`, from `.sdd/specs/<feature>/brainstorm.md`."
 
 - **It returns questions** → show them to the user verbatim under `**Spec · round <n>**`, keeping its numbering and `Next round` lines, then append the answers to `brainstorm.md` under `## Follow-up decisions`, and dispatch again.
 - **It returns the spec path** → continue.
@@ -39,7 +39,7 @@ Done when: `spec.md` exists with `status: draft`.
 
 ### 3. Draw the marked diagrams
 
-When `spec.md` holds draw markers ([artifacts](../../references/artifacts.md#draw-marker)), dispatch `alper:drawer`: "Apply `draw-visual` to every draw marker in `.specs/<feature>/spec.md`."
+When `spec.md` holds draw markers ([artifacts](../../references/artifacts.md#draw-marker)), dispatch `alper:drawer`: "Apply `draw-visual` to every draw marker in `.sdd/specs/<feature>/spec.md`."
 
 - **It returns questions** → put them to the user, then dispatch again with the answers.
 - **It returns a render failure** → show the user the error and the last source, and ask whether to retry with a change or keep the marker.

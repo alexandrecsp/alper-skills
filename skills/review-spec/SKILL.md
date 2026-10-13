@@ -19,11 +19,11 @@ Checks whether the diff delivers what the spec and tickets promised, no less and
 
 ## Rules
 
-- **Acceptance criteria**: each criterion in every ticket under `.specs/<feature>/tickets/` is *met* only when the diff contains code that delivers it and a test that proves it. Code without a test is a gap.
+- **Acceptance criteria**: each criterion in every ticket under `.sdd/specs/<feature>/tickets/` is *met* only when the diff contains code that delivers it and a test that proves it. Code without a test is a gap.
 - **Success criteria**: each Success Criterion in `spec.md` is met, a gap, or "checked at release" when it can only be checked by a run outside the diff.
 - **Implementation decisions**: each decision in the spec is followed by the diff, or the deviation is a gap.
 - **Out of scope**: anything the spec puts out of scope that the diff does anyway is a gap.
-- **Extras**: a change no criterion, story or decision asks for is reported as an extra. An extra is not wrong by itself; it needs the user's yes. The build's own records under `.specs/<feature>/` (ticket statuses, `reviews/`, follow-up decisions in `brainstorm.md`) and the Gotchas it adds to the `## Agent workflow` block are never extras.
+- **Extras**: a change no criterion, story or decision asks for is reported as an extra. An extra is not wrong by itself; it needs the user's yes. The build's own records under `.sdd/specs/<feature>/` (ticket statuses, `reviews/`, follow-up decisions in `brainstorm.md`) and the Gotchas it adds to the `## Agent workflow` block are never extras.
 - **Scope**: with a milestone scope, Implementation Decisions, Out of Scope and extras are still checked against the whole diff; only criteria and stories outside the scope go unjudged.
 
 Paths: [artifacts](../../references/artifacts.md).

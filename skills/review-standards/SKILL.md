@@ -17,7 +17,7 @@ Checks whether a diff follows how this repo says code should be written. A docum
 
 ## Sources
 
-1. Every file that documents how code is written here: `docs/CODING_STANDARDS.md`, `CONTRIBUTING.md`, the rules in `CLAUDE.md` / `AGENTS.md`, and any file those point to.
+1. Every file that documents how code is written here: `.sdd/docs/CODING_STANDARDS.md`, `CONTRIBUTING.md`, the rules in `CLAUDE.md` / `AGENTS.md`, and any file those point to.
 2. The smell baseline below.
 
 Skip anything a linter, formatter or type checker in the repo already enforces.

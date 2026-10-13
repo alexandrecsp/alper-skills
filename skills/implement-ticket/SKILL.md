@@ -27,7 +27,7 @@ Done when: `git rev-parse --show-toplevel` prints the worktree, `git branch --sh
 
 ### 2. Load the ticket
 
-Read the ticket (or findings), `GLOSSARY.md`, the coding standards, and the stuck report when your prompt carries one. Read only the spec sections the ticket's Notes name: list the headings with `grep -n '^## ' <spec>`, then `Read` each section with an offset and limit. Read source files by the range you need, too; every line read stays in your context until you hand back. When the Notes name a `design-patterns/<file>.md`, load the `design-patterns` skill and read that file.
+Read the ticket (or findings), `.sdd/GLOSSARY.md`, the coding standards, and the stuck report when your prompt carries one. Read only the spec sections the ticket's Notes name: list the headings with `grep -n '^## ' <spec>`, then `Read` each section with an offset and limit. Read source files by the range you need, too; every line read stays in your context until you hand back. When the Notes name a `design-patterns/<file>.md`, load the `design-patterns` skill and read that file.
 
 Done when: you can list each acceptance criterion and the test that will prove it.
 
