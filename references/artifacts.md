@@ -5,12 +5,12 @@ The files, branches and settings every alper skill reads and writes. This file i
 ## Layout
 
 ```
-docs/.specs/<feature>/
+.specs/<feature>/
   brainstorm.md                  # the confirmed brainstorm: what and how blocks, then follow-up decisions
   spec.md                        # the spec
   tickets/NN-<slug>.md           # one file per ticket
   reviews/m<NN>-<slug>.md        # the latest review report of a milestone
-docs/.specs/dashboard.html       # read-only dashboard over every feature; copied by /alper:setup-repository
+.specs/dashboard.html            # read-only dashboard over every feature; copied by /alper:setup-repository
 GLOSSARY.md                      # domain language, no implementation details
 docs/adr/NNNN-<slug>.md          # decisions, created lazily
 docs/CODING_STANDARDS.md         # only when the repo documents no standards elsewhere
@@ -20,7 +20,7 @@ docs/drawings/<slug>.html        # a chart or view from /alper:draw when no path
 
 - `<feature>` is a kebab-case slug the user confirmed. Ticket `NN` is two digits, numbered in dependency order (blockers first). Milestone `NN` is two digits from `01`, in landing order.
 - The dashboard is the plugin's [`assets/dashboard.html`](../assets/dashboard.html), copied unchanged. It parses the formats in this file, so a format change updates it too.
-- `docs/.specs` is a hidden directory, which ripgrep skips by default. Open these files by exact path, list them with `ls docs/.specs/<feature>/tickets`, or pass `--hidden` to ripgrep.
+- `.specs` is a hidden directory, which ripgrep skips by default. Open these files by exact path, list them with `ls .specs/<feature>/tickets`, or pass `--hidden` to ripgrep.
 
 ## Build settings
 

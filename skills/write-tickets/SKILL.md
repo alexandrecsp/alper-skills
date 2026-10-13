@@ -1,6 +1,6 @@
 ---
 name: write-tickets
-description: Breaks an approved spec into tracer-bullet vertical-slice tickets with blocking edges under docs/.specs/<feature>/tickets/. Use when slicing a spec into tickets.
+description: Breaks an approved spec into tracer-bullet vertical-slice tickets with blocking edges under .specs/<feature>/tickets/. Use when slicing a spec into tickets.
 metadata:
   type: process
 ---
@@ -20,7 +20,7 @@ Cuts an approved spec into **tracer bullets**: narrow slices through every layer
 
 ### 1. Read the spec and the code
 
-Read `docs/.specs/<feature>/spec.md` (its `status` must be `approved`) and the modules its Implementation Decisions name. Formats: [artifacts](../../references/artifacts.md).
+Read `.specs/<feature>/spec.md` (its `status` must be `approved`) and the modules its Implementation Decisions name. Formats: [artifacts](../../references/artifacts.md).
 
 Done when: the spec is approved, and you can name the module and the milestone each User Story lands in.
 

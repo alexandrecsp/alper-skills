@@ -27,7 +27,7 @@ Confirmed 2026-10-11.
                 milestones are declared in a `## Milestones` section of the spec (`M<NN> <slug>`, its user stories and success criteria), plus `milestone: "NN"` in each ticket's frontmatter
                 a ticket may depend only on tickets in its own milestone or an earlier one; the architect checks this, and the build refuses to start if it's broken
                 milestone branch `milestone/<feature>/m<NN>-<slug>`, cut from `feat` after the previous milestone lands; tickets are cut from it and merged into it one at a time with `--no-ff`; the milestone merges into `feat` with `--no-ff` and a `Milestone: <feature>/<NN>` trailer
-                review runs on both axes, on the milestone branch compared with `feat`, scoped to that milestone's tickets and user stories; the report is saved to `docs/.specs/<feature>/reviews/m<NN>-<slug>.md` and committed on the milestone branch; up to 2 fix rounds per milestone, then the build stops and reports
+                review runs on both axes, on the milestone branch compared with `feat`, scoped to that milestone's tickets and user stories; the report is saved to `.specs/<feature>/reviews/m<NN>-<slug>.md` and committed on the milestone branch; up to 2 fix rounds per milestone, then the build stops and reports
                 after the last milestone, a Spec-only check runs across the whole feature and reports findings without starting a fix round
                 pause is off by default; `--pause` or `--no-pause` overrides it for one run; you resume by running `/alper:build` again
                 resume: a milestone counts as finished once `feat` has its merge with the `Milestone:` trailer; ticket statuses and the saved review reports cover the milestone in progress

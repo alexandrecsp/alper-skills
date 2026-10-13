@@ -24,13 +24,13 @@ The scope and Spec-only are inputs only `/alper:build` passes; without them, the
 
 ### 1. Pin the fixed point
 
-Use the fixed point the user or caller gave (a branch, tag or commit). On `feat/<feature>` with no argument, use `base` from `docs/.specs/<feature>/spec.md`. Otherwise ask.
+Use the fixed point the user or caller gave (a branch, tag or commit). On `feat/<feature>` with no argument, use `base` from `.specs/<feature>/spec.md`. Otherwise ask.
 
 Done when: `git rev-parse <fixed-point>` resolves and `git diff <fixed-point>...HEAD` is not empty.
 
 ### 2. Find the spec
 
-In order: a path the user passed; `docs/.specs/<feature>/spec.md` when the branch is `feat/<feature>` or `milestone/<feature>/m<NN>-<slug>`; the `Ticket:` trailers in `<fixed-point>..HEAD`, whose `<feature>/NN` names a feature under `docs/.specs/`. When none is found, ask the user; if there is none, the Spec axis reports "no spec available".
+In order: a path the user passed; `.specs/<feature>/spec.md` when the branch is `feat/<feature>` or `milestone/<feature>/m<NN>-<slug>`; the `Ticket:` trailers in `<fixed-point>..HEAD`, whose `<feature>/NN` names a feature under `.specs/`. When none is found, ask the user; if there is none, the Spec axis reports "no spec available".
 
 Done when: the spec path is known, or confirmed absent.
 

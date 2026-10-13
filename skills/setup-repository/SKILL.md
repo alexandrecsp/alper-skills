@@ -25,7 +25,7 @@ Find out:
 
 - which of `CLAUDE.md` and `AGENTS.md` exist at the root, whether either has an `## Agent workflow` section, and which of the five [build settings](../../references/artifacts.md#build-settings) it already holds, and which obsolete settings (`Parallel cap`, `Parallel test suites`) it still holds;
 - whether `.gitignore` ignores `.claude/worktrees/`;
-- whether `docs/.specs/dashboard.html` exists and is identical to the plugin's [dashboard](../../assets/dashboard.html);
+- whether `.specs/dashboard.html` exists and is identical to the plugin's [dashboard](../../assets/dashboard.html);
 - whether `GLOSSARY.md` or `GLOSSARY-MAP.md` exists;
 - every file that documents coding standards (`docs/CODING_STANDARDS.md`, `CONTRIBUTING.md`, a style guide), and the linter, formatter and type-checker configs;
 - the domain nouns in the code: entity and type names, table names, route segments;
@@ -47,9 +47,9 @@ Done when: the user has answered every question.
 
 ### 3. Write the glossary, standards, wrappers, ignore rule and dashboard
 
-Apply `domain-modeling` to write the confirmed terms into `GLOSSARY.md`. When standards were drafted, write the confirmed rules to `docs/CODING_STANDARDS.md`, one rule per bullet, leaving out what tooling already enforces. Write each wrapper script the user chose, and run it once. When `.claude/worktrees/` is not ignored, append that line to `.gitignore`. When `docs/.specs/dashboard.html` is missing or differs from the plugin's [dashboard](../../assets/dashboard.html), copy the plugin's file over it unchanged.
+Apply `domain-modeling` to write the confirmed terms into `GLOSSARY.md`. When standards were drafted, write the confirmed rules to `docs/CODING_STANDARDS.md`, one rule per bullet, leaving out what tooling already enforces. Write each wrapper script the user chose, and run it once. When `.claude/worktrees/` is not ignored, append that line to `.gitignore`. When `.specs/dashboard.html` is missing or differs from the plugin's [dashboard](../../assets/dashboard.html), copy the plugin's file over it unchanged.
 
-Done when: both files hold exactly what the user confirmed, each wrapper ran and printed only counts and failures, `git check-ignore -q .claude/worktrees/x` succeeds, and `git diff --no-index --quiet <plugin>/assets/dashboard.html docs/.specs/dashboard.html` succeeds.
+Done when: both files hold exactly what the user confirmed, each wrapper ran and printed only counts and failures, `git check-ignore -q .claude/worktrees/x` succeeds, and `git diff --no-index --quiet <plugin>/assets/dashboard.html .specs/dashboard.html` succeeds.
 
 ### 4. Write the agent-workflow block
 
@@ -60,7 +60,7 @@ Edit the agent file that exists (`CLAUDE.md` first, then `AGENTS.md`); create on
 
 This repo uses the alper plugin: `/alper:brainstorm` → `/alper:spec` → `/alper:build`, and `/alper:review` for any branch.
 
-- Specs and tickets: `docs/.specs/<feature>/`. The directory is hidden from ripgrep's default search; open files by path.
+- Specs and tickets: `.specs/<feature>/`. The directory is hidden from ripgrep's default search; open files by path.
 - Domain language: `GLOSSARY.md`. Use its terms in code, specs and tickets.
 - Decisions: `docs/adr/`.
 - Coding standards: <the standards file>.
@@ -78,7 +78,7 @@ Done when: the file has exactly one `## Agent workflow` section holding all five
 
 ### 5. Report
 
-List each file created or changed, and what changed. When the dashboard was copied, tell the user how to open it: `docs/.specs/dashboard.html` in a browser, picking the repo root; Chrome and Edge follow a running build live.
+List each file created or changed, and what changed. When the dashboard was copied, tell the user how to open it: `.specs/dashboard.html` in a browser, picking the repo root; Chrome and Edge follow a running build live.
 
 Done when: the report is delivered.
 
@@ -104,13 +104,13 @@ Done when: the report is delivered.
 - Changes outside the block in the agent file (step 4)
 - A build setting asked again when the block already held it (step 2)
 - A command written without the user's confirmation (step 2)
-- A `docs/.specs/dashboard.html` that differs from the plugin's copy after the run (step 3)
+- A `.specs/dashboard.html` that differs from the plugin's copy after the run (step 3)
 
 ## Verification
 
 - [ ] Exactly one `## Agent workflow` section exists, in the one agent file, holding all five build settings and every earlier Gotchas entry.
 - [ ] `.gitignore` ignores `.claude/worktrees/`.
-- [ ] `docs/.specs/dashboard.html` is identical to the plugin's `assets/dashboard.html`.
+- [ ] `.specs/dashboard.html` is identical to the plugin's `assets/dashboard.html`.
 - [ ] Every build setting was either already in the block or confirmed by the user, and every command was confirmed.
 - [ ] `GLOSSARY.md` holds only confirmed terms, in the glossary format.
 - [ ] A standards file exists: the repo's own, or `docs/CODING_STANDARDS.md` with confirmed rules.

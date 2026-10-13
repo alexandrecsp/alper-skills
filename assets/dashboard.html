@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>alper dashboard</title>
 <!--
-  alper dashboard: a read-only view of docs/.specs. No server, no build step.
-  Open this file in a browser and pick the repository root (or docs/.specs).
+  alper dashboard: a read-only view of .specs. No server, no build step.
+  Open this file in a browser and pick the repository root (or .specs).
   Chrome and Edge read the folder live; other browsers load a snapshot.
   Copied into each repo by /alper:setup-repository; edit the plugin's copy, not this one.
 -->
@@ -198,7 +198,7 @@ class HandleSource {
 }
 
 // Keeps only what the dashboard reads, so picking a repo root with node_modules stays cheap.
-const KEEP = /(^|\/)docs\/\.specs\/|^\.git\/(HEAD$|packed-refs$|refs\/heads\/|worktrees\/[^/]+\/(HEAD|gitdir)$)/;
+const KEEP = /(^|\/)\.specs\/|^\.git\/(HEAD$|packed-refs$|refs\/heads\/|worktrees\/[^/]+\/(HEAD|gitdir)$)/;
 
 class FileListSource {
   constructor(files) {
@@ -456,13 +456,13 @@ async function loadRepo(src) {
   const list = p => src.list(p);
 
   let specsPath = null;
-  if ((await list('docs/.specs')).some(e => e.dir)) specsPath = 'docs/.specs';
+  if ((await list('.specs')).some(e => e.dir)) specsPath = '.specs';
   else {
     for (const e of await list('')) if (e.dir && !e.name.startsWith('.') && (await src.read(`${e.name}/spec.md`)) !== null) { specsPath = ''; break; }
   }
   if (specsPath === null) return { name: src.name, error: 'no-specs', features: [], sig: 0 };
 
-  const atRoot = specsPath === 'docs/.specs';
+  const atRoot = specsPath === '.specs';
   const git = atRoot ? await readGit(read, list) : null;
   if (git) seen.push(git.branch, [...git.branches].sort().join(','), JSON.stringify(git.worktrees));
 
@@ -473,7 +473,7 @@ async function loadRepo(src) {
     let basePath = join(specsPath, slug);
     let source = 'main';
     if (atRoot) {
-      const wt = `.claude/worktrees/${slug}/docs/.specs/${slug}`;
+      const wt = `.claude/worktrees/${slug}/.specs/${slug}`;
       if ((await src.read(`${wt}/spec.md`)) !== null) { basePath = wt; source = 'worktree'; }
     }
     const specText = await read(`${basePath}/spec.md`);
@@ -642,8 +642,8 @@ function renderWelcome() {
     <div class="max-w-xl mx-auto px-4 py-20">
       <div class="label mb-3">alper · dashboard</div>
       <h1 class="text-2xl font-semibold text-strong tracking-tight">Every feature, ticket and review in one place.</h1>
-      <p class="mt-3 text-muted leading-relaxed">Pick the repository root, the folder holding <code class="font-mono text-fg">docs/.specs</code>. The dashboard only reads: specs, tickets, reviews, and the git refs that say which milestones landed. A running build is read from its worktree.</p>
-      ${state.repo?.error === 'no-specs' ? `<p class="mt-4 border border-strong px-3 py-2 text-xs">No <code class="font-mono">docs/.specs</code> in <b>${esc(state.repo.name)}</b>. Pick the repository root, or <code class="font-mono">docs/.specs</code> itself.</p>` : ''}
+      <p class="mt-3 text-muted leading-relaxed">Pick the repository root, the folder holding <code class="font-mono text-fg">.specs</code>. The dashboard only reads: specs, tickets, reviews, and the git refs that say which milestones landed. A running build is read from its worktree.</p>
+      ${state.repo?.error === 'no-specs' ? `<p class="mt-4 border border-strong px-3 py-2 text-xs">No <code class="font-mono">.specs</code> in <b>${esc(state.repo.name)}</b>. Pick the repository root, or <code class="font-mono">.specs</code> itself.</p>` : ''}
       <div class="mt-8 flex flex-wrap gap-2">
         ${pending ? `<button data-act="reconnect" class="btn btn-solid h-9 px-4 text-sm">Reopen ${esc(pending.name)}</button>` : ''}
         <button data-act="open" class="btn ${pending ? '' : 'btn-solid'} h-9 px-4 text-sm">Open repository folder</button>
@@ -656,7 +656,7 @@ function renderWelcome() {
 
 function renderOverview() {
   const fs = state.repo.features;
-  if (!fs.length) return `<div class="max-w-5xl mx-auto px-4 sm:px-6 py-8">${empty('No feature under <code class="font-mono">docs/.specs</code> yet. Start one with <code class="font-mono">/alper:brainstorm</code>.')}</div>`;
+  if (!fs.length) return `<div class="max-w-5xl mx-auto px-4 sm:px-6 py-8">${empty('No feature under <code class="font-mono">.specs</code> yet. Start one with <code class="font-mono">/alper:brainstorm</code>.')}</div>`;
   const all = fs.flatMap(f => f.tickets);
   const c = countBy(all);
   const active = fs.flatMap(f => f.tickets.filter(t => t.status === 'in-progress' || t.status === 'blocked').map(t => ({ f, t })));

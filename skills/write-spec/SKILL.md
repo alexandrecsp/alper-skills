@@ -1,6 +1,6 @@
 ---
 name: write-spec
-description: Synthesizes a confirmed brainstorm into docs/.specs/<feature>/spec.md without re-interviewing, returning any decision the brainstorm left open. Use when turning settled decisions into a spec.
+description: Synthesizes a confirmed brainstorm into .specs/<feature>/spec.md without re-interviewing, returning any decision the brainstorm left open. Use when turning settled decisions into a spec.
 metadata:
   type: process
 ---
@@ -20,7 +20,7 @@ Turns decisions the user already made into a spec. It never interviews again: a 
 
 ### 1. Read the inputs
 
-Read `docs/.specs/<feature>/brainstorm.md`, `GLOSSARY.md`, the ADRs in `docs/adr/`, the coding standards, and every module the decisions touch. Paths and formats: [artifacts](../../references/artifacts.md).
+Read `.specs/<feature>/brainstorm.md`, `GLOSSARY.md`, the ADRs in `docs/adr/`, the coding standards, and every module the decisions touch. Paths and formats: [artifacts](../../references/artifacts.md).
 
 Done when: every module a decision touches has been opened, and you can name the existing pattern each change follows or departs from.
 
@@ -42,7 +42,7 @@ Done when: each user-visible behaviour in the brainstorm has a seam that can obs
 
 ### 4. Write the spec
 
-Write `docs/.specs/<feature>/spec.md` with the frontmatter from [artifacts](../../references/artifacts.md) (`status: draft`, `tickets: none`) and this body:
+Write `.specs/<feature>/spec.md` with the frontmatter from [artifacts](../../references/artifacts.md) (`status: draft`, `tickets: none`) and this body:
 
 ```markdown
 # Spec: <feature title>

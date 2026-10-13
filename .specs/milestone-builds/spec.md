@@ -103,7 +103,7 @@ gitGraph
 
 All new formats live here; every skill points at it, as today.
 
-- **Layout** gains `docs/.specs/<feature>/reviews/m<NN>-<slug>.md`, the latest review report of a milestone.
+- **Layout** gains `.specs/<feature>/reviews/m<NN>-<slug>.md`, the latest review report of a milestone.
 - **Spec** gains a `## Milestones` section between User Stories and Implementation Decisions. Its contract:
 
   ```markdown
