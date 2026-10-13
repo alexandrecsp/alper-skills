@@ -47,6 +47,22 @@ Five bullets and a Gotchas list in the repo's `## Agent workflow` block, written
 - Each test command prints the pass and fail counts and the failures, and little else. A runner that prints its whole log gets a wrapper script that does, and the setting names the wrapper.
 - **Gotchas** are optional: at most 10 one-line traps of this repo (a tool that breaks in worktrees, a name clash, files never to commit). `/alper:build` adds one when a hand-back reports it, replacing the least useful entry when the list is full. Agents read them from the block; dispatch prompts never repeat them.
 
+## Commit settings
+
+One bullet in the same `## Agent workflow` block, written by `/alper:setup-repository` and read by the `commit` skill:
+
+```markdown
+- Commit title prefix: (FUNC-|PRB-|INC)[0-9]+[ ]
+```
+
+| Setting | Values | Default setup recommends |
+|---|---|---|
+| `Commit title prefix` | a POSIX extended regex for the issue key the team's own convention puts at the start of every commit title (`FUNC-1234`, `INC12313`, `PRB-47848`), or `none` | the key pattern the repo's last 30 titles share, else `none` |
+
+- The value runs to the end of the line and is never quoted; a trailing space is written `[ ]`, since editors strip trailing whitespace. A missing setting means `none`: titles carry no key, and no skill asks for one or stops over it.
+- Check a title with `printf '%s\n' "<title>" | grep -Eq '^(<pattern>)'`.
+- With a regex set, every commit title starts with a key, the fixed ones (`build: start NN`, `M<NN> <slug>`) included. A feature's key lives in its spec's `issue` field, so every commit `/alper:build` makes for it carries the same key.
+
 ## Spec frontmatter
 
 ```yaml
@@ -55,6 +71,7 @@ feature: <feature>
 status: draft          # draft | approved; set to approved by /alper:spec
 tickets: none          # none | draft | approved; set by /alper:spec
 base: ""               # the branch the user chose to build from; set by /alper:build
+issue: ""              # the issue key every commit title of the feature starts with; set by /alper:build when a Commit title prefix is set
 ---
 ```
 

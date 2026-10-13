@@ -17,11 +17,11 @@ After pulling or editing, `/plugin marketplace update alper` refreshes the insta
 
 | Command | What it does |
 |---|---|
-| `/alper:setup-repository` | Once per repo: an agent-workflow block in `CLAUDE.md` or `AGENTS.md` with the build settings (pause, install, typecheck, test and full-suite commands) and the repo's Gotchas, a confirmed `GLOSSARY.md`, coding standards when none exist, `.claude/worktrees/` git-ignored, the [dashboard](#dashboard) at `.specs/dashboard.html` |
+| `/alper:setup-repository` | Once per repo: an agent-workflow block in `CLAUDE.md` or `AGENTS.md` with the build settings (pause, install, typecheck, test and full-suite commands), the commit title prefix regex and the repo's Gotchas, a confirmed `GLOSSARY.md`, coding standards when none exist, `.claude/worktrees/` git-ignored, the [dashboard](#dashboard) at `.specs/dashboard.html` |
 | `/alper:brainstorm [topic]` | Interviews you in rounds of recommended questions until a plan is a confirmed set of decisions |
 | `/alper:spec [feature]` | The architect writes the spec, then the tickets; you approve each |
 | `/alper:build [feature] [mNN] [tNN] [--pause\|--no-pause]` | Milestone by milestone in `.claude/worktrees/<feature>`: one developer per ticket, in order, each committing on the milestone branch; a review gates each milestone before it lands on `feat/<feature>`. `mNN` builds one milestone, `tNN` one ticket |
-| `/alper:commit` | Commits the staged change: an imperative title ("If applied, this commit will …") and at most three bullets |
+| `/alper:commit` | Commits the staged change: an imperative title ("If applied, this commit will …"), starting with the issue key the repo's prefix regex requires, and at most three bullets |
 | `/alper:review [fixed-point]` | Standards and Spec review of the current branch against a branch, tag or commit (default: the spec's `base`) |
 | `/alper:draw [what] [target]` | The drawer draws a Mermaid diagram, chart or standalone HTML view, render-checks it, and writes it in place |
 

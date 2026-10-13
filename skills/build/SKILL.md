@@ -50,13 +50,15 @@ Done when: the target is known, or you have reported and stopped with nothing ch
 
 ### 3. Enter the build worktree
 
-- **`feat/<feature>` does not exist** → ask the user which branch to build from, naming each: the default branch (`git symbolic-ref --short refs/remotes/origin/HEAD`, else `main` or `master`), the current branch when it differs, or another they name. Recommend the default branch when it holds the approved spec and tickets, else the current branch. A branch holds them when `git diff --quiet <branch> HEAD -- .specs/<feature>` succeeds; a chosen branch that does not → tell the user the spec and tickets must reach it first, and stop. Then `git worktree add -b feat/<feature> .claude/worktrees/<feature> <base>`, enter it with `EnterWorktree` (`path`), run the `Install command` (unless `none`), then the full suite. Red → `ExitWorktree` (`keep`), remove the worktree and the branch, and stop with the failures. Green → record `<base>` in the spec frontmatter and commit it on `feat/<feature>`.
+- **`feat/<feature>` does not exist** → ask the user which branch to build from and, when the block sets a [`Commit title prefix`](../../references/artifacts.md#commit-settings), the feature's issue key; ask both in one round. For the branch, name each: the default branch (`git symbolic-ref --short refs/remotes/origin/HEAD`, else `main` or `master`), the current branch when it differs, or another they name. Recommend the default branch when it holds the approved spec and tickets, else the current branch. A branch holds them when `git diff --quiet <branch> HEAD -- .specs/<feature>` succeeds; a chosen branch that does not → tell the user the spec and tickets must reach it first, and stop. Then `git worktree add -b feat/<feature> .claude/worktrees/<feature> <base>`, enter it with `EnterWorktree` (`path`), run the `Install command` (unless `none`), then the full suite. Red → `ExitWorktree` (`keep`), remove the worktree and the branch, and stop with the failures. Green → record `<base>` and the issue key in the spec frontmatter and commit them on `feat/<feature>`.
 - **It exists, the worktree does not** → `git worktree add .claude/worktrees/<feature> feat/<feature>`, enter it, and run the `Install command`.
 - **Both exist** → enter the worktree.
 
+When `feat/<feature>` already existed, the block sets a `Commit title prefix` and the spec's `issue` is empty, ask the user for the feature's issue key, record it and commit it on `feat/<feature>`. A key the pattern does not match is asked again.
+
 Every later step runs in the worktree. Developers and reviewers inherit it as their working directory.
 
-Done when: `git rev-parse --show-toplevel` prints the worktree and `base` is recorded.
+Done when: `git rev-parse --show-toplevel` prints the worktree, `base` is recorded, and with a `Commit title prefix` set, `issue` holds a key the pattern matches.
 
 ### 4. Cut or resume the milestone branch
 
@@ -175,6 +177,6 @@ Besides the stops in steps 1–7, stop and ask the user before any irreversible 
 - [ ] Tickets were built one at a time in number order, each by its own developer as one commit with its `Ticket:` trailer and the ticket `done`, or the ticket is `blocked` with a reason.
 - [ ] Every user answer to a developer is a `Build · t<NN>` entry in `brainstorm.md`, and every reported gotcha is in the block's Gotchas.
 - [ ] Every landed milestone has a Clean report in `reviews/` and a `--no-ff` merge on `feat/<feature>` with its `Milestone:` trailer, after at most 2 fix cycles.
-- [ ] `feat/<feature>` holds only its `base` commit and milestone merges.
+- [ ] `feat/<feature>` holds only its setup commits (`base`, `issue`) and milestone merges.
 - [ ] The final Spec-only check ran once after the last milestone landed, or was skipped for the implicit milestone.
 - [ ] The final report lists every milestone's state, the final check and the next command.

@@ -1,6 +1,6 @@
 ---
 name: setup-repository
-description: "Prepare a repo for alper once: an agent-workflow block with the build settings, a confirmed GLOSSARY.md, coding standards when none exist, and the specs dashboard."
+description: "Prepare a repo for alper once: an agent-workflow block with the build and commit settings, a confirmed GLOSSARY.md, coding standards when none exist, and the specs dashboard."
 disable-model-invocation: true
 metadata:
   type: process
@@ -23,16 +23,17 @@ Writes the three things every alper skill reads: a pointer block in the repo's a
 
 Find out:
 
-- which of `CLAUDE.md` and `AGENTS.md` exist at the root, whether either has an `## Agent workflow` section, and which of the five [build settings](../../references/artifacts.md#build-settings) it already holds, and which obsolete settings (`Parallel cap`, `Parallel test suites`) it still holds;
+- which of `CLAUDE.md` and `AGENTS.md` exist at the root, whether either has an `## Agent workflow` section, and which of the five [build settings](../../references/artifacts.md#build-settings) it already holds, whether it holds the [`Commit title prefix`](../../references/artifacts.md#commit-settings), and which obsolete settings (`Parallel cap`, `Parallel test suites`) it still holds;
 - whether `.gitignore` ignores `.claude/worktrees/`;
 - whether `.specs/dashboard.html` exists and is identical to the plugin's [dashboard](../../assets/dashboard.html);
 - whether `GLOSSARY.md` or `GLOSSARY-MAP.md` exists;
 - every file that documents coding standards (`docs/CODING_STANDARDS.md`, `CONTRIBUTING.md`, a style guide), and the linter, formatter and type-checker configs;
 - the domain nouns in the code: entity and type names, table names, route segments;
 - the lockfile or manifest, and the install command it implies (`npm ci`, `pnpm install --frozen-lockfile`, `uv sync`, `bundle install`, …), or `none` when the repo installs nothing;
+- the issue key the last 30 commit titles (`git log -30 --format=%s`) start with, if any (`FUNC-1234`, `INC12313`), written as a POSIX extended regex covering every key prefix seen;
 - the typecheck, filtered-test and full-suite commands, from the manifest's scripts or the CI config, and whether each prints more than its counts and failures (Unity, Gradle and similar runners print their whole log).
 
-Done when: you can say, for each of the three outputs, the dashboard and each build setting, whether it exists, is partial, or is missing, and you have a candidate for each command.
+Done when: you can say, for each of the three outputs, the dashboard, each build setting and the commit prefix, whether it exists, is partial, or is missing, and you have a candidate for each command and for the prefix (a regex, or `none`).
 
 ### 2. Ask in one round
 
@@ -42,6 +43,7 @@ Ask only what exploration left open, in the brainstorm format (`❓` question, l
 - **Glossary**: the 5–15 candidate terms, each with a one-line definition and its `_Avoid_` synonyms; which to keep or correct?
 - **Standards**: only when no standards document exists: the draft rules inferred from the configs and the code's visible conventions; keep, correct or drop each?
 - **Build settings**: one question per setting missing from the block, each recommending the default in [build settings](../../references/artifacts.md#build-settings); each command question offers the derived command to confirm or correct. A test command that prints its whole log gets a second question: ✅ a wrapper script under `scripts/` that runs it and prints only the counts and failures, or the raw command.
+- **Commit title prefix**: only when the block lacks it: does a team convention require an issue key at the start of every commit title? ✅ the candidate regex, shown with two recent titles it matches; a regex the user writes, with two example keys; or `none`.
 
 Done when: the user has answered every question.
 
@@ -49,7 +51,7 @@ Done when: the user has answered every question.
 
 Apply `domain-modeling` to write the confirmed terms into `GLOSSARY.md`. When standards were drafted, write the confirmed rules to `docs/CODING_STANDARDS.md`, one rule per bullet, leaving out what tooling already enforces. Write each wrapper script the user chose, and run it once. When `.claude/worktrees/` is not ignored, append that line to `.gitignore`. When `.specs/dashboard.html` is missing or differs from the plugin's [dashboard](../../assets/dashboard.html), copy the plugin's file over it unchanged.
 
-Done when: both files hold exactly what the user confirmed, each wrapper ran and printed only counts and failures, `git check-ignore -q .claude/worktrees/x` succeeds, and `git diff --no-index --quiet <plugin>/assets/dashboard.html .specs/dashboard.html` succeeds.
+Done when: both files hold exactly what the user confirmed, a confirmed prefix regex matches its two examples under `grep -Eq '^(<pattern>)'`, each wrapper ran and printed only counts and failures, `git check-ignore -q .claude/worktrees/x` succeeds, and `git diff --no-index --quiet <plugin>/assets/dashboard.html .specs/dashboard.html` succeeds.
 
 ### 4. Write the agent-workflow block
 
@@ -69,12 +71,13 @@ This repo uses the alper plugin: `/alper:brainstorm` → `/alper:spec` → `/alp
 - Typecheck command: <command|none>
 - Test command: <command with <tests>>
 - Full suite command: <command>
+- Commit title prefix: <regex|none>
 - Gotchas:
 ```
 
-A setting already in the block keeps its value, and every Gotchas entry stays; only the answers from step 2 change the block, and the obsolete settings are dropped.
+A setting already in the block, the commit prefix included, keeps its value, and every Gotchas entry stays; only the answers from step 2 change the block, and the obsolete settings are dropped.
 
-Done when: the file has exactly one `## Agent workflow` section holding all five build settings, no obsolete setting, and every earlier Gotchas entry, and every other line of the file is unchanged.
+Done when: the file has exactly one `## Agent workflow` section holding all five build settings, the commit prefix, no obsolete setting, and every earlier Gotchas entry, and every other line of the file is unchanged.
 
 ### 5. Report
 
@@ -103,15 +106,15 @@ Done when: the report is delivered.
 - A duplicated `## Agent workflow` section after a re-run (step 4)
 - Changes outside the block in the agent file (step 4)
 - A build setting asked again when the block already held it (step 2)
-- A command written without the user's confirmation (step 2)
+- A command or commit prefix written without the user's confirmation (step 2)
 - A `.specs/dashboard.html` that differs from the plugin's copy after the run (step 3)
 
 ## Verification
 
-- [ ] Exactly one `## Agent workflow` section exists, in the one agent file, holding all five build settings and every earlier Gotchas entry.
+- [ ] Exactly one `## Agent workflow` section exists, in the one agent file, holding all five build settings, the commit prefix and every earlier Gotchas entry.
 - [ ] `.gitignore` ignores `.claude/worktrees/`.
 - [ ] `.specs/dashboard.html` is identical to the plugin's `assets/dashboard.html`.
-- [ ] Every build setting was either already in the block or confirmed by the user, and every command was confirmed.
+- [ ] Every build setting and the commit prefix was either already in the block or confirmed by the user, and every command was confirmed.
 - [ ] `GLOSSARY.md` holds only confirmed terms, in the glossary format.
 - [ ] A standards file exists: the repo's own, or `docs/CODING_STANDARDS.md` with confirmed rules.
 - [ ] A second run with no new answers changes no file.

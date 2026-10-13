@@ -15,7 +15,7 @@ A commit message says what applying the commit does, not what the author touched
 
 - **Any commit** → run the Process.
 - **A commit inside the alper workflow** (ticket, review fix, merge) → run the Process and end the message with the trailer from [artifacts](../../references/artifacts.md#branches-and-commits).
-- **Bookkeeping commits** made by `/alper:build` (`build: start NN`, a ticket marked `blocked`) → use the fixed message from artifacts as is.
+- **Bookkeeping commits** made by `/alper:build` (`build: start NN`, a ticket marked `blocked`) → use the fixed message from artifacts, behind the issue key when step 2 sets one.
 
 ## Process
 
@@ -37,7 +37,9 @@ Imperative, capitalised, no trailing period, at most 72 characters. Name the beh
 
 Read it back as "If applied, this commit will <title>". When the title needs "and", the diff holds two changes: split it, unless a one-commit-per-ticket rule binds you, then name the outcome both serve.
 
-Done when: the sentence reads as correct English and describes the whole staged diff.
+Then read the [`Commit title prefix`](../../references/artifacts.md#commit-settings) from the `## Agent workflow` block on disk (`CLAUDE.md`, else `AGENTS.md`). Missing or `none` → the title carries no key, and you neither look for one nor ask. A regex → every title starts with the issue key it matches, the fixed titles from artifacts included, followed by a space unless the pattern sets its own separator. Inside the alper workflow, take the key from the `issue` field of `.specs/<feature>/spec.md`; otherwise from the user's request or the branch name. When none holds a key the pattern matches, ask the user for it. The key is the one id the title carries, the 72 characters include it, and the "If applied" sentence reads the text after it.
+
+Done when: the sentence reads as correct English and describes the whole staged diff, and with a pattern set, `printf '%s\n' "<title>" | grep -Eq '^(<pattern>)'` succeeds.
 
 ### 3. Write the body
 
@@ -80,6 +82,8 @@ Done when: `git log -1 --format=%B` prints exactly the title and body you wrote.
 | "`Fix bug` is enough, it's a small commit" | Small commits need precise titles most. Name the behaviour that is now correct: `Keep the cursor position after save`. |
 | "I'll describe what I did" | Describe what the commit does when applied: `Add retry to webhook delivery`, not `Added retries`. |
 | "The test results prove it, so I'll paste them" | Results belong in the handback report. The body holds changes and reasons. |
+| "It's only a bookkeeping commit, it can skip the key" | Every commit carries the key. Put it in front of the fixed title: `FUNC-1234 build: start 03`. |
+| "No key in sight; I'll use a plausible one" | An invented key links the commit to the wrong issue. Take it from the spec's `issue`, the request or the branch, or ask the user. |
 
 ## Red Flags
 
@@ -89,13 +93,15 @@ Done when: `git log -1 --format=%B` prints exactly the title and body you wrote.
 - A body with more than three bullets, or bullets that restate the title (step 3)
 - File lists or test output in the body (step 3)
 - A merge commit with a body when no conflict was resolved (step 3)
-- A ticket id or other metadata in the title (step 2)
+- A ticket id or other metadata in the title besides the issue key (step 2)
+- A title the configured `Commit title prefix` does not match (step 2)
 - A workflow commit without its `Ticket:` or `Review-fix:` trailer (step 3)
 
 ## Verification
 
 - [ ] "If applied, this commit will <title>" reads as correct English and covers the whole diff.
-- [ ] The title is imperative, at most 72 characters, with no trailing period and no ids.
+- [ ] The title is imperative, at most 72 characters, with no trailing period and no ids besides the issue key.
+- [ ] With a `Commit title prefix` set, `grep -Eq '^(<pattern>)'` matches the title.
 - [ ] The body has 0–3 bullets, each a change or its reason, none restating the title.
 - [ ] A workflow commit ends with its trailer from artifacts.
 - [ ] `git log -1 --format=%B` matches the message as written.
