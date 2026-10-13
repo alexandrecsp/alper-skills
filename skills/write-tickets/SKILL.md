@@ -9,7 +9,7 @@ metadata:
 
 ## Overview
 
-Cuts an approved spec into **tracer bullets**: narrow slices through every layer, each verifiable on its own. Blocking edges are kept to the ones that truly gate a ticket, because every unblocked ticket is built in parallel.
+Cuts an approved spec into **tracer bullets**: narrow slices through every layer, each verifiable on its own. `/alper:build` builds them one at a time in number order, so the numbering puts every blocker first and each edge names what its ticket uses.
 
 ## When to Use
 
@@ -40,7 +40,7 @@ Done when: every slice is vertical or part of an expand–contract sequence.
 
 ### 4. Set the blocking edges
 
-For each ticket, list in `blocked-by` only the tickets whose merged code it needs to compile, pass its tests or make sense. Prefer the breakdown with the widest frontier: two tickets that only touch neighbouring code do not block each other; the merger resolves their conflicts.
+For each ticket, list in `blocked-by` only the tickets whose code it needs to compile, pass its tests or make sense. A blocked ticket stops the build, and only its dependents should wait on it.
 
 Give each ticket the milestone of the stories it delivers. A ticket may be blocked only by tickets in its own milestone or an earlier one: the build lands milestones in order, so an edge to a later milestone waits forever. When an edge points forward, move the blocker to the earlier milestone or re-slice.
 
@@ -48,30 +48,27 @@ Done when: every edge names what the blocked ticket uses from its blocker, the g
 
 ### 5. Write the tickets
 
-Write one file per ticket using the [ticket template](../../references/artifacts.md#ticket-file), `status: todo`, numbered blockers first. Each acceptance criterion is an observable behaviour a test can prove. Fill `milestone` with the milestone's `NN`, and `touches` with every module the ticket changes, named as the spec's Implementation Decisions name them: the build keeps overlapping tickets apart.
+Write one file per ticket using the [ticket template](../../references/artifacts.md#ticket-file), `status: todo`, numbered in build order: milestone by milestone, blockers first. Each acceptance criterion is an observable behaviour a test can prove. Fill `milestone` with the milestone's `NN`.
 
-Done when: every User Story and Success Criterion in the spec is covered by at least one ticket's acceptance criteria, and every ticket has `milestone` and `touches`.
+Done when: every User Story and Success Criterion in the spec is covered by at least one ticket's acceptance criteria, every ticket has `milestone`, and every `blocked-by` id is lower than its ticket's.
 
 ### 6. Return the breakdown
 
 Return a table the caller can show the user:
 
-| NN | Title | Milestone | Blocked by | Touches | What it delivers |
-|---|---|---|---|---|---|
+| NN | Title | Milestone | Blocked by | What it delivers |
+|---|---|---|---|---|
 
-Add the frontier waves under it, per milestone (wave 1: the milestone's tickets with no blockers inside it; wave 2: tickets unblocked by wave 1; …).
-
-Done when: the table and the waves are returned.
+Done when: the table is returned, in build order.
 
 ## Common Rationalizations
 
 | Rationalization | Reality |
 |---|---|
-| "Schema first, then API, then UI is cleaner" | Horizontal layers make every ticket block the next. Slice vertically so tickets run in parallel. |
-| "Add the edge to be safe" | Every extra edge serializes the build. Add an edge only for code the ticket uses. |
+| "Schema first, then API, then UI is cleaner" | Horizontal layers leave nothing testable until the last one lands. Slice vertically so each ticket is verifiable alone. |
+| "Add the edge to be safe" | A needless edge stops the ticket when its blocker is blocked. Add an edge only for code the ticket uses. |
 | "This ticket needs a later milestone's work, the build will sort it out" | The build refuses the breakdown. Move the blocker earlier or re-slice. |
-| "`touches` is a guess anyway, list the main module" | The scheduler only keeps tickets apart on modules they list. List every module the ticket changes. |
-| "The refactor is small, fold it into the first slice" | A prefactor inside a slice blocks every other slice that touches it. Ticket it first. |
+| "The refactor is small, fold it into the first slice" | A prefactor inside a slice hides a restructure in a feature commit and grows the slice. Ticket it first. |
 | "This acceptance criterion is self-evident" | The developer writes a test per criterion. Write each as a behaviour a test can observe. |
 
 ## Red Flags
@@ -79,7 +76,7 @@ Done when: the table and the waves are returned.
 - A ticket that changes one layer only, outside an expand–contract sequence (step 3)
 - An edge with no named dependency (step 4)
 - A `blocked-by` id in a later milestone than the ticket (step 4)
-- A ticket with no `milestone` or `touches` (step 5)
+- A ticket with no `milestone`, or numbered before one of its blockers (step 5)
 - A spec User Story that no acceptance criterion covers (step 5)
 - A ticket too large to read with its code in one context (step 3)
 
@@ -88,7 +85,7 @@ Done when: the table and the waves are returned.
 - [ ] The spec was `approved` before slicing.
 - [ ] Every ticket is a vertical slice or a step of an expand–contract sequence.
 - [ ] Every `blocked-by` edge names what the ticket uses from its blocker, points to the same or an earlier milestone, and the graph is acyclic.
-- [ ] Every ticket has `milestone` (a declared milestone) and `touches`.
+- [ ] Every ticket has `milestone` (a declared milestone) and a higher number than each of its blockers.
 - [ ] Every User Story and Success Criterion is covered by an acceptance criterion.
 - [ ] Every ticket file matches the template and is numbered blockers first.
-- [ ] The breakdown table, with `Milestone` and `Touches`, and the frontier waves per milestone were returned.
+- [ ] The breakdown table, with `Milestone`, was returned in build order.

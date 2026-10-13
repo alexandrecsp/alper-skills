@@ -1,6 +1,6 @@
 ---
 name: setup-repository
-description: Prepare a repo for alper once: an agent-workflow block with the build settings, a confirmed GLOSSARY.md, and coding standards when none exist.
+description: "Prepare a repo for alper once: an agent-workflow block with the build settings, a confirmed GLOSSARY.md, and coding standards when none exist."
 disable-model-invocation: true
 metadata:
   type: process
@@ -10,7 +10,7 @@ metadata:
 
 ## Overview
 
-Writes the three things every alper skill reads: a pointer block in the repo's agent file carrying the build settings, a glossary of terms the user confirmed, and a written coding standard for the Standards reviewer. Re-running it updates the same block, asks only for what is missing, and changes nothing else.
+Writes the three things every alper skill reads: a pointer block in the repo's agent file carrying the build settings, a glossary of terms the user confirmed, and a written coding standard for the Standards reviewer. It also git-ignores the build worktrees. Re-running it updates the same block, asks only for what is missing, and changes nothing else.
 
 ## When to Use
 
@@ -23,7 +23,8 @@ Writes the three things every alper skill reads: a pointer block in the repo's a
 
 Find out:
 
-- which of `CLAUDE.md` and `AGENTS.md` exist at the root, whether either has an `## Agent workflow` section, and which of the seven [build settings](../../references/artifacts.md#build-settings) it already holds;
+- which of `CLAUDE.md` and `AGENTS.md` exist at the root, whether either has an `## Agent workflow` section, and which of the five [build settings](../../references/artifacts.md#build-settings) it already holds, and which obsolete settings (`Parallel cap`, `Parallel test suites`) it still holds;
+- whether `.gitignore` ignores `.claude/worktrees/`;
 - whether `GLOSSARY.md` or `GLOSSARY-MAP.md` exists;
 - every file that documents coding standards (`docs/CODING_STANDARDS.md`, `CONTRIBUTING.md`, a style guide), and the linter, formatter and type-checker configs;
 - the domain nouns in the code: entity and type names, table names, route segments;
@@ -43,11 +44,11 @@ Ask only what exploration left open, in the brainstorm format (`❓` question, l
 
 Done when: the user has answered every question.
 
-### 3. Write the glossary, standards and wrappers
+### 3. Write the glossary, standards, wrappers and ignore rule
 
-Apply `domain-modeling` to write the confirmed terms into `GLOSSARY.md`. When standards were drafted, write the confirmed rules to `docs/CODING_STANDARDS.md`, one rule per bullet, leaving out what tooling already enforces. Write each wrapper script the user chose, and run it once.
+Apply `domain-modeling` to write the confirmed terms into `GLOSSARY.md`. When standards were drafted, write the confirmed rules to `docs/CODING_STANDARDS.md`, one rule per bullet, leaving out what tooling already enforces. Write each wrapper script the user chose, and run it once. When `.claude/worktrees/` is not ignored, append that line to `.gitignore`.
 
-Done when: both files hold exactly what the user confirmed, and each wrapper ran and printed only counts and failures.
+Done when: both files hold exactly what the user confirmed, each wrapper ran and printed only counts and failures, and `git check-ignore -q .claude/worktrees/x` succeeds.
 
 ### 4. Write the agent-workflow block
 
@@ -62,8 +63,6 @@ This repo uses the alper plugin: `/alper:brainstorm` → `/alper:spec` → `/alp
 - Domain language: `GLOSSARY.md`. Use its terms in code, specs and tickets.
 - Decisions: `docs/adr/`.
 - Coding standards: <the standards file>.
-- Parallel cap: <n>
-- Parallel test suites: <yes|no>
 - Pause between milestones: <on|off>
 - Install command: <command|none>
 - Typecheck command: <command|none>
@@ -72,9 +71,9 @@ This repo uses the alper plugin: `/alper:brainstorm` → `/alper:spec` → `/alp
 - Gotchas:
 ```
 
-A setting already in the block keeps its value, and every Gotchas entry stays; only the answers from step 2 change the block.
+A setting already in the block keeps its value, and every Gotchas entry stays; only the answers from step 2 change the block, and the obsolete settings are dropped.
 
-Done when: the file has exactly one `## Agent workflow` section holding all seven build settings and every earlier Gotchas entry, and every other line of the file is unchanged.
+Done when: the file has exactly one `## Agent workflow` section holding all five build settings, no obsolete setting, and every earlier Gotchas entry, and every other line of the file is unchanged.
 
 ### 5. Report
 
@@ -91,8 +90,8 @@ Done when: the report is delivered.
 | "Copy the linter rules into the standards" | Tooling already enforces those. Write only what tooling cannot check. |
 | "Append the block again, it's simpler" | Re-runs must replace the section, so the file holds exactly one. |
 | "Re-ask every setting so the block is fresh" | The user already chose the existing values. Ask only for settings missing from the block. |
-| "I'll guess the install command, the user can fix it later" | A wrong command breaks every developer's worktree. Derive it, then get the user's confirmation. |
-| "The runner's log is fine, a wrapper is extra work" | Every developer and merger reads that log on every run, for the rest of its context. Offer the wrapper. |
+| "I'll guess the install command, the user can fix it later" | A wrong command breaks the build worktree. Derive it, then get the user's confirmation. |
+| "The runner's log is fine, a wrapper is extra work" | Every developer reads that log on every run, for the rest of its context. Offer the wrapper. |
 
 ## Red Flags
 
@@ -105,7 +104,8 @@ Done when: the report is delivered.
 
 ## Verification
 
-- [ ] Exactly one `## Agent workflow` section exists, in the one agent file, holding all seven build settings and every earlier Gotchas entry.
+- [ ] Exactly one `## Agent workflow` section exists, in the one agent file, holding all five build settings and every earlier Gotchas entry.
+- [ ] `.gitignore` ignores `.claude/worktrees/`.
 - [ ] Every build setting was either already in the block or confirmed by the user, and every command was confirmed.
 - [ ] `GLOSSARY.md` holds only confirmed terms, in the glossary format.
 - [ ] A standards file exists: the repo's own, or `docs/CODING_STANDARDS.md` with confirmed rules.

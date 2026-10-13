@@ -15,7 +15,7 @@ A commit message says what applying the commit does, not what the author touched
 
 - **Any commit** → run the Process.
 - **A commit inside the alper workflow** (ticket, review fix, merge) → run the Process and end the message with the trailer from [artifacts](../../references/artifacts.md#branches-and-commits).
-- **Bookkeeping commits** made by `/alper:build` (`build: start NN, NN`, a ticket marked `blocked`) → use the fixed message from artifacts as is.
+- **Bookkeeping commits** made by `/alper:build` (`build: start NN`, a ticket marked `blocked`) → use the fixed message from artifacts as is.
 
 ## Process
 

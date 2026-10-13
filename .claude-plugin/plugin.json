@@ -2,7 +2,7 @@
   "name": "alper",
   "displayName": "alper",
   "version": "0.1.0",
-  "description": "Spec-driven development: brainstorm, spec, and parallel ticket builds with a merger and a two-axis review",
+  "description": "Spec-driven development: brainstorm, spec, and milestone builds in a dedicated worktree with a two-axis review per milestone",
   "author": {
     "name": "Alexandre"
   },

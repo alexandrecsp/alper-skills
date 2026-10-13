@@ -59,11 +59,11 @@ Done when: `status: approved` is set after an explicit yes.
 
 Dispatch `alper:architect`: "Apply `write-tickets` for `<feature>`." Set `tickets: draft` in the spec frontmatter when the files exist.
 
-Done when: the ticket files exist and the architect returned the breakdown table and the frontier waves per milestone.
+Done when: the ticket files exist and the architect returned the breakdown table.
 
 ### 6. Approve the tickets
 
-Show the table, with its `Milestone` and `Touches` columns, and the waves per milestone, unchanged. Ask: does the granularity fit, are the edges right, should any ticket merge or split? Changes go back to the architect. On an explicit yes, set `tickets: approved`.
+Show the table, with its `Milestone` column, unchanged. Ask: does the granularity fit, are the edges right, should any ticket merge or split? Changes go back to the architect. On an explicit yes, set `tickets: approved`.
 
 Done when: `tickets: approved` is set after an explicit yes.
 

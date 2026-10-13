@@ -14,6 +14,7 @@ GLOSSARY.md                      # domain language, no implementation details
 docs/adr/NNNN-<slug>.md          # decisions, created lazily
 docs/CODING_STANDARDS.md         # only when the repo documents no standards elsewhere
 docs/drawings/<slug>.html        # a chart or view from /alper:draw when no path was given
+.claude/worktrees/<feature>/     # the build worktree /alper:build works in; git-ignored
 ```
 
 - `<feature>` is a kebab-case slug the user confirmed. Ticket `NN` is two digits, numbered in dependency order (blockers first). Milestone `NN` is two digits from `01`, in landing order.
@@ -21,11 +22,9 @@ docs/drawings/<slug>.html        # a chart or view from /alper:draw when no path
 
 ## Build settings
 
-Seven bullets and a Gotchas list in the repo's `## Agent workflow` block, written by `/alper:setup-repository` and read by `/alper:build`, the developers and the merger:
+Five bullets and a Gotchas list in the repo's `## Agent workflow` block, written by `/alper:setup-repository` and read by `/alper:build` and the developers:
 
 ```markdown
-- Parallel cap: 3
-- Parallel test suites: yes
 - Pause between milestones: on
 - Install command: npm ci
 - Typecheck command: npx tsc --noEmit
@@ -37,10 +36,8 @@ Seven bullets and a Gotchas list in the repo's `## Agent workflow` block, writte
 
 | Setting | Values | Default setup recommends |
 |---|---|---|
-| `Parallel cap` | a positive integer: the most tickets dispatched and not yet merged at once | 3, or 1 when `Parallel test suites` is `no` |
-| `Parallel test suites` | `yes` or `no`: can two copies of the full suite run at the same time | `yes` |
 | `Pause between milestones` | `on` or `off`. `on` ends the run after each landed milestone, so the next one starts in a fresh session | `on` |
-| `Install command` | the command that installs dependencies in a fresh worktree, or `none` | derived from the lockfile or manifest |
+| `Install command` | the command that installs dependencies in the build worktree, or `none` | derived from the lockfile or manifest |
 | `Typecheck command` | the command that typechecks or compiles the project, or `none` | derived from the manifest or CI config |
 | `Test command` | the command that runs only the tests named in place of `<tests>` | derived from the manifest or CI config |
 | `Full suite command` | the command that runs every test | derived from the manifest or CI config |
@@ -55,7 +52,7 @@ Seven bullets and a Gotchas list in the repo's `## Agent workflow` block, writte
 feature: <feature>
 status: draft          # draft | approved; set to approved by /alper:spec
 tickets: none          # none | draft | approved; set by /alper:spec
-base: ""               # the branch /alper:build started from; set by /alper:build
+base: ""               # the branch the user chose to build from; set by /alper:build
 ---
 ```
 
@@ -82,9 +79,7 @@ id: "03"
 title: <short title>
 status: todo
 blocked-by: ["01", "02"]
-branch: ticket/<feature>/03-<slug>
 milestone: "01"
-touches: ["<module>", "<module>"]
 ---
 
 ## What it delivers
@@ -105,35 +100,29 @@ touches: ["<module>", "<module>"]
  design-patterns file it applies, as `design-patterns/<file>.md`>
 ```
 
-- `milestone` names a declared milestone. Every `blocked-by` id is in the same milestone or an earlier one.
-- `touches` lists the modules the ticket changes, named as the spec's Implementation Decisions name them. Two tickets **overlap** when their `touches` lists share an entry.
+- `milestone` names a declared milestone. Every `blocked-by` id is lower than the ticket's own and in the same milestone or an earlier one, so number order is a valid build order.
 
 ## Ticket status
 
 | Status | Set by | When |
 |---|---|---|
 | `todo` | architect | the ticket is written |
-| `in-progress` | `/alper:build` | a developer is dispatched for it, never before |
-| `done` | merger | inside the ticket's merge commit |
-| `blocked` | merger or `/alper:build` | the merger cannot get its merge green, or the ticket is still stuck after its Opus retry; a `## Blocked` section appended to the ticket says why |
+| `in-progress` | `/alper:build` | its developer is dispatched, never before |
+| `done` | developer | inside the ticket's commit |
+| `blocked` | `/alper:build` | the ticket is still stuck after its Opus retry; a `## Blocked` section appended to the ticket says why |
 
-Only `/alper:build` and the merger write ticket files after the architect; developers read them.
-
-The **frontier** is every `todo` ticket of the current milestone whose every `blocked-by` id is `done`.
+After the architect, only `/alper:build` writes ticket files, except the developer's `status: done`.
 
 ## Branches and commits
 
 | Thing | Name |
 |---|---|
 | Feature branch | `feat/<feature>`, created from `base`; receives only milestone merges |
-| Milestone branch | `milestone/<feature>/m<NN>-<slug>`, cut from `feat/<feature>` after the previous milestone landed |
-| Ticket branch | the ticket's `branch` field, cut from its milestone branch |
-| Review-fix branch | `fix/<feature>/m<NN>-review-<cycle>`, cut from the milestone branch |
-| Developer commit | one per ticket or fix cycle; trailer `Ticket: <feature>/NN`, or `Review-fix: <feature>/m<NN>-<cycle>` |
-| Ticket and review-fix merge | into the milestone branch, `--no-ff`, the merged commit's title and trailer |
+| Milestone branch | `milestone/<feature>/m<NN>-<slug>`, cut from `feat/<feature>` after the previous milestone landed; deleted once it lands |
+| Developer commit | on the milestone branch, one per ticket or fix cycle; trailer `Ticket: <feature>/NN`, or `Review-fix: <feature>/m<NN>-<cycle>` |
 | Milestone merge | into `feat/<feature>`, `--no-ff`, title `M<NN> <slug>`, trailer `Milestone: <feature>/<NN>` |
 
-- The **integration branch** of a ticket or review fix is its milestone branch. `/alper:build` passes it to developers and the merger; for a milestone merge it is `feat/<feature>`.
+- Both branches are checked out only in the build worktree, never in the main checkout.
 - A milestone has **landed** exactly when `feat/<feature>` holds a merge commit with its `Milestone: <feature>/<NN>` trailer.
 - The **fix cycles used** by a milestone are its `Review-fix: <feature>/m<NN>-<cycle>` trailers on the milestone branch.
 

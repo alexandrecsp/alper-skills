@@ -75,7 +75,7 @@ Write `docs/.specs/<feature>/spec.md` with the frontmatter from [artifacts](../.
 - [ ] <a checkable outcome>
 ```
 
-Group the user stories into **milestones**, each delivering something the user can demo, in the [Milestones section](../../references/artifacts.md#milestones-section) format. Every spec gets the section, even when one milestone covers the whole feature. Order milestones so each one builds only on earlier ones; computed waves of the dependency graph are not milestones.
+Group the user stories into **milestones**, each delivering something the user can demo, in the [Milestones section](../../references/artifacts.md#milestones-section) format. Every spec gets the section, even when one milestone covers the whole feature. Order milestones so each one builds only on earlier ones.
 
 Where a picture carries a section better than prose (a flow across modules, a lifecycle, a data model), leave a draw marker there instead of drawing it. The format is in [artifacts](../../references/artifacts.md#draw-marker). `/alper:spec` has the drawer replace it.
 

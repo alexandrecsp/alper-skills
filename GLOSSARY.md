@@ -10,29 +10,17 @@ A Claude Code plugin that moves a feature from a brainstorm to a spec, tickets a
 A group of tickets the architect declares in the spec, delivering specific user stories the user can demo. A spec with no declared milestones has one implicit milestone.
 _Avoid_: wave, phase, stage
 
-**Wave**:
-A set of tickets that become unblocked together in a ticket breakdown; a computed view, never a milestone.
-_Avoid_: batch, milestone
-
 **Landed**:
 Said of a milestone once the feature branch holds its milestone merge.
 _Avoid_: finished, shipped, done (for milestones)
 
 **Milestone branch**:
-The branch one milestone's tickets and fixes merge into, cut from the feature branch after the previous milestone landed.
-_Avoid_: staging branch, release branch
+The branch one milestone's tickets and fixes are committed on, one commit each, cut from the feature branch after the previous milestone landed.
+_Avoid_: staging branch, release branch, integration branch
 
-**Integration branch**:
-The branch a ticket or review fix is cut from and merged back into: its milestone branch.
-_Avoid_: target branch, parent branch
-
-**Frontier**:
-Every `todo` ticket of the current milestone whose blockers are all `done`.
-_Avoid_: ready queue, backlog
-
-**Parallel cap**:
-The most tickets a build has dispatched and not yet merged at one time, a setting the user chooses.
-_Avoid_: concurrency, worker count, max parallel
+**Build worktree**:
+The git worktree at `.claude/worktrees/<feature>` where a build runs from start to end, leaving the main checkout to the user.
+_Avoid_: sandbox, workspace
 
 **Gotcha**:
 A one-line trap of the target repo every agent must know, kept in its `## Agent workflow` block and added by the build when a hand-back reports one.
@@ -45,7 +33,7 @@ A developer's hand-back saying its ticket cannot get green, naming the failing c
 _Avoid_: failed, errored
 
 **Blocked**:
-A ticket status: the ticket cannot get green after its retry, or its merge cannot get green; the build stops for the user.
+A ticket status: the ticket cannot get green after its retry; the build stops for the user.
 _Avoid_: stuck (for the status), failed
 
 **Follow-up decision**:
