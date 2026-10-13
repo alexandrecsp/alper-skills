@@ -195,6 +195,12 @@ const idb = {
   async set(k, v) { try { const db = await this.open(); db.transaction('kv', 'readwrite').objectStore('kv').put(v, k); } catch {} },
 };
 
+// Every file:// page shares one IndexedDB, so the handle is keyed by where this copy sits:
+// <repo>/.sdd/dashboard.html remembers <repo>, and a second repo's copy does not reopen the first.
+const REPO_PATH = decodeURIComponent(location.pathname).replace(/\/\.sdd\/[^/]*$/, '');
+const ROOT_KEY = 'root:' + REPO_PATH;
+const REPO_NAME = REPO_PATH.split('/').pop();
+
 // ─── Sources: a live directory handle, or a snapshot from <input webkitdirectory> ──
 
 class HandleSource {
@@ -673,6 +679,7 @@ function renderWelcome() {
         ${pending ? `<button data-act="reconnect" class="btn btn-solid h-9 px-4 text-sm">Reopen ${esc(pending.name)}</button>` : ''}
         <button data-act="open" class="btn ${pending ? '' : 'btn-solid'} h-9 px-4 text-sm">Open repository folder</button>
       </div>
+      ${pending ? `<p class="mt-4 text-xs text-muted leading-relaxed">Click anywhere to reopen <b class="text-fg">${esc(pending.name)}</b>. When the browser asks, <i>Allow on every visit</i> opens it with no click next time.</p>` : ''}
       <p class="mt-6 text-xs text-muted leading-relaxed">${picker
         ? 'This browser reads the folder live: with Live on, the board follows a running build as its tickets change.'
         : 'This browser can only load a snapshot. Use Chrome or Edge to follow a build live; here, press Reload after a change and pick the folder again.'}</p>
@@ -1355,7 +1362,7 @@ async function openFolder() {
   if ('showDirectoryPicker' in window) {
     try {
       const h = await window.showDirectoryPicker({ id: 'alper-repo', mode: 'read' });
-      await idb.set('root', h);
+      await idb.set(ROOT_KEY, h);
       return connect(new HandleSource(h));
     } catch (err) {
       if (err?.name === 'AbortError') return;
@@ -1365,7 +1372,7 @@ async function openFolder() {
   $('#dirInput').click();
 }
 
-async function reconnect() {
+async function reconnect(pickOnFail = true) {
   const h = state.pending;
   if (!h) return;
   try {
@@ -1373,7 +1380,20 @@ async function reconnect() {
   } catch (err) {
     console.warn('[alper] reconnect failed', err);
   }
-  openFolder();
+  if (pickOnFail) openFolder();
+}
+
+// The browser forgets the grant between sessions and only asks again on a user gesture,
+// so the first click or key anywhere on the page reopens the remembered folder.
+function reconnectOnFirstGesture() {
+  const once = e => {
+    document.removeEventListener('click', once, true);
+    document.removeEventListener('keydown', once, true);
+    if (e.target.closest?.('[data-act], #openBtn, #reloadBtn')) return;
+    reconnect(false);
+  };
+  document.addEventListener('click', once, true);
+  document.addEventListener('keydown', once, true);
 }
 
 $('#dirInput').addEventListener('change', e => {
@@ -1429,13 +1449,19 @@ setInterval(() => {
 
 (async function boot() {
   render();
-  const h = await idb.get('root');
+  let h = await idb.get(ROOT_KEY);
+  if (!h) {
+    // Handles saved before the per-repo key lived under 'root'; adopt one only if it is this repo.
+    const legacy = await idb.get('root');
+    if (legacy?.name === REPO_NAME) { h = legacy; idb.set(ROOT_KEY, h); }
+  }
   if (!h?.queryPermission) return;
   try {
     if ((await h.queryPermission({ mode: 'read' })) === 'granted') return connect(new HandleSource(h));
   } catch {}
   state.pending = h;
   render();
+  reconnectOnFirstGesture();
 })();
 </script>
 </body>
