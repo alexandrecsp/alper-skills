@@ -84,6 +84,31 @@
   .md hr { border: 0; border-top: 1px solid rgb(var(--line)); margin: 1.5rem 0; }
   .md .mermaid { border: 1px solid rgb(var(--line)); padding: 1rem; overflow-x: auto; margin: .75rem 0; text-align: center; }
   .md .refs { display: inline-flex; gap: .25rem; margin-left: .4rem; vertical-align: 1px; }
+
+  /* dependency graph: same status language as the glyphs, drawn in SVG */
+  .graph text { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif; }
+  .graph .gnode { cursor: pointer; transition: opacity .12s; }
+  .graph .gnode .box { fill: rgb(var(--bg)); stroke: rgb(var(--muted)); stroke-width: 1; }
+  .graph .gnode:hover .box { fill: rgb(var(--hover)); }
+  .graph .g-ready .box { stroke: rgb(var(--strong)); }
+  .graph .g-in-progress .box { stroke: rgb(var(--strong)); stroke-width: 2; }
+  .graph .g-blocked .box { stroke: rgb(var(--strong)); stroke-width: 1.5; stroke-dasharray: 5 3; }
+  .graph .g-done .box { fill: rgb(var(--panel)); stroke: rgb(var(--line)); }
+  .graph .g-ghost { cursor: default; }
+  .graph .g-ghost .box { fill: transparent; stroke-dasharray: 3 3; }
+  .graph .gid { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11px; fill: rgb(var(--muted)); }
+  .graph .gtitle { font-size: 12px; fill: rgb(var(--strong)); }
+  .graph .g-done .gtitle, .graph .g-ghost .gtitle { fill: rgb(var(--muted)); }
+  .graph .sg { fill: none; stroke: rgb(var(--strong)); stroke-width: 1.5; }
+  .graph .sg-todo, .graph .sg-ghost { stroke: rgb(var(--muted)); }
+  .graph .sg-done, .graph .sg-fill { fill: rgb(var(--strong)); }
+  .graph .sg-blocked { fill: url(#g-hatch); }
+  .graph .gedge { fill: none; stroke-width: 1.25; transition: opacity .12s; }
+  .graph .e-pending { stroke: rgb(var(--strong)); }
+  .graph .e-done, .graph .e-ghost { stroke: rgb(var(--muted)); stroke-opacity: .5; }
+  .graph .e-ghost, .graph .e-back { stroke-dasharray: 4 3; }
+  .graph .g-faded { opacity: .25; }
+  .graph.g-hover .gnode:not(.g-on), .graph.g-hover .gedge:not(.g-on) { opacity: .12; }
 </style>
 <style type="text/tailwindcss">
   @layer components {
@@ -790,6 +815,7 @@ function renderTicketsTab(f) {
       <div class="sm:ml-auto flex">
         <button data-view="list" class="btn ${state.view === 'list' ? 'btn-solid' : ''}">List</button>
         <button data-view="board" class="btn -ml-px ${state.view === 'board' ? 'btn-solid' : ''}">Board</button>
+        <button data-view="graph" class="btn -ml-px ${state.view === 'graph' ? 'btn-solid' : ''}">Graph</button>
       </div>
     </div>
     <div id="ticketArea">${renderTicketArea(f)}</div>`;
@@ -803,7 +829,7 @@ function matches(t) {
 }
 
 function renderTicketArea(f) {
-  return state.view === 'board' ? renderBoard(f) : renderList(f);
+  return ({ board: renderBoard, graph: renderGraph }[state.view] || renderList)(f);
 }
 
 // Developers rarely tick the boxes, so a count reads better than 0/N until one is ticked.
@@ -851,31 +877,262 @@ function renderList(f) {
     </section>`).join('');
 }
 
-function renderBoard(f) {
-  const cols = ['todo', 'in-progress', 'blocked', 'done'];
-  const multi = f.milestones.length > 1;
+// Todo splits in two: a ready ticket can start now, a waiting one has an open blocker.
+const BOARD_COLS = [
+  { key: 'ready', label: 'ready', hint: 'Todo, every blocker done', has: t => t.ready },
+  { key: 'waiting', label: 'waiting', hint: 'Todo, waiting on an open blocker', has: t => t.status === 'todo' && !t.ready },
+  { key: 'in-progress', label: 'in progress', hint: 'A developer is on it', has: t => t.status === 'in-progress' },
+  { key: 'blocked', label: 'blocked', hint: 'Stuck: the ticket says why', has: t => t.status === 'blocked' },
+  { key: 'done', label: 'done', hint: 'Committed on the milestone branch', has: t => t.status === 'done' },
+];
+const colGlyph = k => k === 'ready' ? '<span class="st" title="ready"></span>' : glyph(k === 'waiting' ? 'todo' : k);
+const plainText = md => String(md).replace(/[`*_>#[\]]/g, '').replace(/\s+/g, ' ').trim();
+
+function boardCard(f, t) {
+  const open = t.status !== 'done';
+  const refs = (label, ids) => ids.length ? `<span>${label} ${ids.map(id => ticketRef(f, id)).join(' ')}</span>` : '';
+  const deps = open ? [refs('waits', t.waitingOn), refs('blocks', t.blocks)].filter(Boolean).join('') : '';
   return `
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line border border-line">
-      ${cols.map(s => {
-        const ts = f.tickets.filter(t => t.status === s && matches(t));
-        return `
-        <div class="bg-bg min-h-[8rem]">
-          <div class="flex items-center gap-1.5 px-3 h-9 border-b border-line">${glyph(s)}<span class="label text-fg">${esc(STATUS_LABEL[s])}</span><span class="ml-auto font-mono text-[11px] text-muted">${ts.length}</span></div>
-          <div class="p-2 space-y-2">
-            ${ts.map(t => `
-              <div class="border border-line bg-bg hover:border-strong cursor-pointer p-2.5" data-go="${href(f.slug, 'tickets', t.id)}">
-                <div class="flex items-center gap-1.5 text-[11px] font-mono text-muted">
-                  <span class="text-strong">${esc(t.id)}</span>
-                  ${multi && t.ms ? `<span>· M${esc(t.ms.nn)}</span>` : ''}
-                  ${t.ac.total ? `<span class="ml-auto">${acText(t)} AC</span>` : ''}
-                </div>
-                <div class="mt-1 text-[13px] leading-snug text-strong">${esc(t.title)}</div>
-                ${t.waitingOn.length && s !== 'done' ? `<div class="mt-1.5 text-[11px] text-muted">waits ${t.waitingOn.map(esc).join(', ')}</div>` : ''}
-              </div>`).join('') || '<div class="px-1 py-2 text-[11px] text-muted">—</div>'}
-          </div>
-        </div>`;
-      }).join('')}
+    <div class="border border-line bg-bg hover:border-strong cursor-pointer p-2.5" data-go="${href(f.slug, 'tickets', t.id)}">
+      <div class="flex items-center gap-1.5 text-[11px] font-mono text-muted">
+        ${glyph(t.status)}<span class="text-strong">${esc(t.id)}</span>
+        ${t.ac.total ? `<span class="ml-auto" title="Acceptance criteria">${acText(t)} AC</span>` : ''}
+      </div>
+      <div class="mt-1 text-[13px] leading-snug ${open ? 'text-strong' : 'text-muted'}">${esc(t.title)}</div>
+      ${t.status === 'blocked' && t.blockedReason ? `<div class="mt-1.5 text-[11px] leading-snug line-clamp-2">${esc(plainText(t.blockedReason))}</div>` : ''}
+      ${open && t.touches.length ? `<div class="mt-2 flex flex-wrap gap-1">${t.touches.slice(0, 2).map(m => `<span class="chip">${esc(m)}</span>`).join('')}${t.touches.length > 2 ? `<span class="chip">+${t.touches.length - 2}</span>` : ''}</div>` : ''}
+      ${deps ? `<div class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted">${deps}</div>` : ''}
     </div>`;
+}
+
+// Kanban: one column per flow state, one swimlane per milestone when there are several.
+function renderBoard(f) {
+  const lanes = f.milestones.length > 1;
+  const groups = lanes
+    ? f.milestones.map(m => ({ m, ts: m.tickets.filter(matches) })).filter(g => g.ts.length || (state.status === 'all' && !state.q))
+    : [{ m: null, ts: f.tickets.filter(matches) }];
+  if (!groups.some(g => g.ts.length)) return empty('No ticket matches the filter.');
+  const all = groups.flatMap(g => g.ts);
+  const head = BOARD_COLS.map(c => `
+    <div class="bg-bg flex items-center gap-1.5 px-3 h-9" title="${esc(c.hint)}">${colGlyph(c.key)}<span class="label text-fg">${esc(c.label)}</span><span class="ml-auto font-mono text-[11px] text-muted">${all.filter(c.has).length}</span></div>`).join('');
+  const body = groups.map(({ m, ts }) => `
+    ${m ? `
+    <div class="bg-panel flex items-center gap-2 px-3 h-8" style="grid-column: 1 / -1">
+      <span class="font-mono text-xs font-semibold text-strong">M${esc(m.nn)}</span>
+      <span class="font-mono text-xs truncate">${esc(m.slug)}</span>
+      ${msBadge(m.state)}
+      <span class="ml-auto font-mono text-[11px] text-muted">${m.counts.done}/${m.counts.total} done</span>
+    </div>` : ''}
+    ${BOARD_COLS.map(c => {
+      const cs = ts.filter(c.has);
+      return `<div class="bg-bg p-2 space-y-2 min-h-[3.5rem]">${cs.map(t => boardCard(f, t)).join('') || '<div class="px-1 py-1 text-[11px] text-muted">—</div>'}</div>`;
+    }).join('')}`).join('');
+  return `
+    <div class="overflow-x-auto border border-line">
+      <div class="grid gap-px bg-line min-w-[960px]" style="grid-template-columns: repeat(${BOARD_COLS.length}, minmax(0, 1fr))">${head}${body}</div>
+    </div>`;
+}
+
+// ─── Dependency graph ───────────────────────────────────────────────────────
+
+const G = { w: 196, h: 62, dummy: 8, col: 60, row: 14, pad: 20, chars: 27 };
+const isDummy = v => v.startsWith('~');
+
+// Columns by longest blocked-by path, so every arrow points right. An edge that skips
+// columns runs through placeholder slots, and a few sweeps order each column by the
+// mean position of its neighbours to keep crossings down.
+function layoutGraph(tickets) {
+  const byId = new Map(tickets.map(t => [t.id, t]));
+  const ids = uniq([...tickets.map(t => t.id), ...tickets.flatMap(t => t.blockedBy)]);
+  const layer = new Map();
+  const stack = new Set();
+  const depth = id => {
+    if (layer.has(id)) return layer.get(id);
+    if (stack.has(id)) return -1;   // a cycle: its closing edge is drawn as a back edge
+    stack.add(id);
+    const d = 1 + Math.max(-1, ...(byId.get(id)?.blockedBy || []).map(depth));
+    stack.delete(id);
+    layer.set(id, d);
+    return d;
+  };
+  ids.forEach(depth);
+
+  const layers = [];
+  const put = (v, l) => (layers[l] ||= []).push(v);
+  ids.forEach(id => put(id, layer.get(id)));
+  const ups = new Map(), downs = new Map();
+  const link = (a, b) => {
+    if (!downs.has(a)) downs.set(a, []);
+    if (!ups.has(b)) ups.set(b, []);
+    downs.get(a).push(b);
+    ups.get(b).push(a);
+  };
+  const edges = [];
+  let n = 0;
+  for (const t of tickets) for (const b of t.blockedBy) {
+    const la = layer.get(b), lb = layer.get(t.id);
+    const back = lb <= la;
+    const chain = [b];
+    if (!back) for (let l = la + 1; l < lb; l++) { const d = `~${n++}`; put(d, l); chain.push(d); }
+    chain.push(t.id);
+    if (!back) for (let i = 1; i < chain.length; i++) link(chain[i - 1], chain[i]);
+    edges.push({ from: b, to: t.id, chain, back });
+  }
+  for (let l = 0; l < layers.length; l++) layers[l] ||= [];
+
+  const pos = new Map();
+  const index = L => L.forEach((v, i) => pos.set(v, i));
+  layers.forEach(index);
+  const mean = (v, adj) => { const ns = adj.get(v); return ns?.length ? ns.reduce((s, u) => s + pos.get(u), 0) / ns.length : pos.get(v); };
+  for (let pass = 0; pass < 8; pass++) {
+    const down = pass % 2 === 0;
+    for (let i = 1; i < layers.length; i++) {
+      const L = layers[down ? i : layers.length - 1 - i];
+      const key = new Map(L.map(v => [v, mean(v, down ? ups : downs)]));
+      L.sort((a, b) => key.get(a) - key.get(b));
+      index(L);
+    }
+  }
+
+  // Each slot drifts toward the mean height of its neighbours; packing it once pushing
+  // down and once pushing up, then averaging, keeps the order and the spacing.
+  const hOf = v => isDummy(v) ? G.dummy : G.h;
+  const span = L => L.reduce((s, v) => s + hOf(v), 0) + G.row * Math.max(0, L.length - 1);
+  const tall = Math.max(0, ...layers.map(span));
+  const top = new Map();
+  for (const L of layers) { let y = (tall - span(L)) / 2; for (const v of L) { top.set(v, y); y += hOf(v) + G.row; } }
+  const mid = v => top.get(v) + hOf(v) / 2;
+  for (let pass = 0; pass < 12; pass++) {
+    for (const L of pass % 2 ? [...layers].reverse() : layers) {
+      const want = L.map(v => { const ns = [...(ups.get(v) || []), ...(downs.get(v) || [])]; return ns.length ? ns.reduce((s, u) => s + mid(u), 0) / ns.length - hOf(v) / 2 : top.get(v); });
+      const fwd = [], bwd = [];
+      L.forEach((v, i) => { fwd[i] = i ? Math.max(want[i], fwd[i - 1] + hOf(L[i - 1]) + G.row) : want[i]; });
+      for (let i = L.length - 1; i >= 0; i--) bwd[i] = i < L.length - 1 ? Math.min(want[i], bwd[i + 1] - hOf(L[i]) - G.row) : want[i];
+      L.forEach((v, i) => top.set(v, (fwd[i] + bwd[i]) / 2));
+    }
+  }
+  const minTop = Math.min(0, ...top.values());
+  const at = new Map();
+  layers.forEach((L, l) => { for (const v of L) at.set(v, { x: G.pad + l * (G.w + G.col), y: G.pad + top.get(v) - minTop, h: hOf(v) }); });
+  const bottom = Math.max(0, ...[...at.values()].map(p => p.y + p.h)) + G.pad;
+
+  const curve = (a, b) => { const dx = Math.max(24, (b.x - a.x) / 2); return ` C${a.x + dx},${a.y} ${b.x - dx},${b.y} ${b.x},${b.y}`; };
+  for (const e of edges) {
+    const s = at.get(e.chain[0]);
+    let cur = { x: s.x + G.w, y: s.y + s.h / 2 };
+    e.d = `M${cur.x},${cur.y}`;
+    for (const v of e.chain.slice(1)) {
+      const p = at.get(v);
+      const mid = p.y + p.h / 2;
+      e.d += curve(cur, { x: p.x, y: mid });
+      cur = { x: p.x + G.w, y: mid };
+      if (isDummy(v)) e.d += ` L${cur.x},${cur.y}`;
+    }
+  }
+  return {
+    nodes: ids.map(id => ({ id, t: byId.get(id) || null, ...at.get(id) })),
+    edges,
+    width: G.pad * 2 + layers.length * G.w + Math.max(0, layers.length - 1) * G.col,
+    height: bottom,
+  };
+}
+
+function wrapText(s, n, max) {
+  const lines = [];
+  for (const w of String(s).split(/\s+/).filter(Boolean)) {
+    const last = lines[lines.length - 1];
+    if (last !== undefined && (last + ' ' + w).length <= n) lines[lines.length - 1] = last + ' ' + w;
+    else lines.push(w);
+  }
+  if (lines.length > max) { lines.length = max; lines[max - 1] += '…'; }
+  return lines.map(l => l.length > n ? l.slice(0, n - 1) + '…' : l);
+}
+
+// The fewest tickets still to build one after another: the feature's critical path.
+function longestOpenChain(f) {
+  const memo = new Map();
+  const len = id => {
+    const t = f.byId.get(id);
+    if (!t || t.status === 'done') return 0;
+    if (memo.has(id)) return memo.get(id);
+    memo.set(id, 1);
+    const n = 1 + Math.max(0, ...t.blockedBy.map(len));
+    memo.set(id, n);
+    return n;
+  };
+  return Math.max(0, ...f.tickets.map(t => len(t.id)));
+}
+
+const svgGlyph = s => `<rect x="10" y="11" width="10" height="10" class="sg sg-${esc(s || 'ghost')}"/>${s === 'in-progress' ? '<rect x="10" y="11" width="5" height="10" class="sg-fill"/>' : ''}`;
+
+function renderGraph(f) {
+  const g = layoutGraph(f.tickets);
+  const multi = f.milestones.length > 1;
+  const chain = longestOpenChain(f);
+  const faded = id => { const t = f.byId.get(id); return t && !matches(t); };
+  const node = ({ id, t, x, y }) => {
+    const cls = !t ? 'g-ghost' : t.ready ? 'g-ready' : `g-${t.status}`;
+    const side = !t ? '' : t.ready ? 'ready' : t.status === 'todo' ? `waits ${t.waitingOn.length}` : '';
+    const lines = t ? wrapText(t.title, G.chars, 2) : ['no ticket with this id'];
+    return `
+      <g class="gnode ${cls} ${faded(id) ? 'g-faded' : ''}" data-node="${esc(id)}" ${t ? `data-go="${href(f.slug, 'tickets', id)}"` : ''} transform="translate(${x},${y})">
+        <title>${esc(t ? `${id} · ${t.title} (${STATUS_LABEL[t.status]})` : `${id}: named in blocked-by, but no ticket has this id`)}</title>
+        <rect class="box" width="${G.w}" height="${G.h}"/>
+        ${svgGlyph(t?.status)}
+        <text class="gid" x="27" y="20">${esc(id)}${multi && t?.ms ? ` · M${esc(t.ms.nn)}` : ''}</text>
+        ${side ? `<text class="gid" x="${G.w - 10}" y="20" text-anchor="end">${esc(side)}</text>` : ''}
+        ${lines.map((l, i) => `<text class="gtitle" x="10" y="${39 + i * 15}">${esc(l)}</text>`).join('')}
+      </g>`;
+  };
+  const edge = e => {
+    const src = f.byId.get(e.from);
+    const cls = !src ? 'e-ghost' : src.status === 'done' ? 'e-done' : 'e-pending';
+    return `<path class="gedge ${cls} ${e.back ? 'e-back' : ''} ${faded(e.from) || faded(e.to) ? 'g-faded' : ''}" data-from="${esc(e.from)}" data-to="${esc(e.to)}" d="${e.d}" marker-end="url(#g-arrow-${cls === 'e-pending' ? 'on' : 'off'})"/>`;
+  };
+  const key = cls => `<svg class="graph" width="22" height="8" aria-hidden="true"><line x1="0" y1="4" x2="22" y2="4" class="gedge ${cls}"/></svg>`;
+  return `
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mb-2 text-[11px] text-muted">
+      <span class="font-mono">${f.tickets.length} tickets · ${g.edges.length} dependencies${chain ? ` · <span title="The fewest open tickets that still have to be built one after another">longest open chain ${chain}</span>` : ''}</span>
+      <span class="inline-flex items-center gap-1.5">${key('e-pending')}blocker open</span>
+      <span class="inline-flex items-center gap-1.5">${key('e-done')}blocker done</span>
+      <span class="sm:ml-auto">Hover a ticket to trace its chain; click it to open.</span>
+    </div>
+    ${g.edges.length ? '' : '<p class="mb-2 text-xs text-muted">No ticket declares <code class="font-mono">blocked-by</code>: each one can start on its own.</p>'}
+    <div class="overflow-auto border border-line bg-panel">
+      <svg id="depGraph" class="graph block" width="${g.width}" height="${g.height}" viewBox="0 0 ${g.width} ${g.height}" role="img" aria-label="Ticket dependency graph: an arrow runs from a blocker to the ticket it blocks">
+        <defs>
+          <pattern id="g-hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="1.5" height="4" style="fill: rgb(var(--strong))"/></pattern>
+          <marker id="g-arrow-on" viewBox="0 0 8 8" refX="8" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" style="fill: rgb(var(--strong))"/></marker>
+          <marker id="g-arrow-off" viewBox="0 0 8 8" refX="8" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" style="fill: rgb(var(--muted)); fill-opacity: .6"/></marker>
+        </defs>
+        <g>${g.edges.map(edge).join('')}</g>
+        <g>${g.nodes.map(node).join('')}</g>
+      </svg>
+    </div>`;
+}
+
+// Hovering a node keeps it, everything it waits on and everything it unblocks; dims the rest.
+function traceGraph(id) {
+  const svg = $('#depGraph');
+  if (!svg || (svg.dataset.hover || '') === id) return;
+  svg.dataset.hover = id;
+  svg.classList.toggle('g-hover', !!id);
+  for (const el of svg.querySelectorAll('.g-on')) el.classList.remove('g-on');
+  const f = id && feature(route().slug);
+  if (!f) return;
+  const reach = (next) => {
+    const seen = new Set([id]);
+    const go = n => { for (const m of next(n)) if (!seen.has(m)) { seen.add(m); go(m); } };
+    go(id);
+    return seen;
+  };
+  const up = reach(n => f.byId.get(n)?.blockedBy || []);
+  const down = reach(n => f.byId.get(n)?.blocks || []);
+  for (const el of svg.querySelectorAll('[data-node]')) if (up.has(el.dataset.node) || down.has(el.dataset.node)) el.classList.add('g-on');
+  for (const el of svg.querySelectorAll('[data-from]')) {
+    const { from, to } = el.dataset;
+    if ((up.has(from) && up.has(to)) || (down.has(from) && down.has(to))) el.classList.add('g-on');
+  }
 }
 
 function renderDocTab(md, missing, f) {
@@ -1156,6 +1413,8 @@ document.addEventListener('click', e => {
   const go = e.target.closest('[data-go]');
   if (go && !e.target.closest('a')) location.hash = go.dataset.go;
 });
+
+document.addEventListener('mouseover', e => traceGraph(e.target.closest?.('#depGraph [data-node]')?.dataset.node || ''));
 
 document.addEventListener('input', e => {
   if (e.target.id !== 'search') return;

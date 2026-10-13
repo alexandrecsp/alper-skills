@@ -27,7 +27,7 @@ After pulling or editing, `/plugin marketplace update alper` refreshes the insta
 
 ## Dashboard
 
-`/alper:setup-repository` copies [assets/dashboard.html](assets/dashboard.html) to `.specs/dashboard.html`: one HTML file, no server. Open it in a browser and pick the repo root. It shows every feature's stage, its milestones (landed, in review, building), each ticket's status, blockers and acceptance criteria, the user stories and spec sections a ticket implements, and the saved reviews. During a build it reads the tickets from `.claude/worktrees/<feature>`, and the git refs to tell which milestones landed. It never writes.
+`/alper:setup-repository` copies [assets/dashboard.html](assets/dashboard.html) to `.specs/dashboard.html`: one HTML file, no server. Open it in a browser and pick the repo root. It shows every feature's stage, its milestones (landed, in review, building), each ticket's status, blockers and acceptance criteria as a list, a kanban board (ready, waiting, in progress, blocked, done, one swimlane per milestone) or a dependency graph, the user stories and spec sections a ticket implements, and the saved reviews. During a build it reads the tickets from `.claude/worktrees/<feature>`, and the git refs to tell which milestones landed. It never writes.
 
 Chrome and Edge read the folder live: with **Live** on, the board follows a running build. Other browsers load a snapshot of the folder. Styles and Markdown come from a CDN, so the page needs a network connection.
 
